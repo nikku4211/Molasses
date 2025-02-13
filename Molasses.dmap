@@ -45,7 +45,7 @@ System.o700:
     NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
     LIBSFX_SMP        Offs=000000  Size=00004A  Align=00001  Fill=0000
 molasses.o:
-    CODE              Offs=000000  Size=000A2E  Align=00001  Fill=0000
+    CODE              Offs=000000  Size=000A2B  Align=00001  Fill=0000
     RODATA            Offs=000000  Size=004200  Align=00001  Fill=0000
     BSS               Offs=000000  Size=000109  Align=00001  Fill=0000
     DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
@@ -71,8 +71,8 @@ ZEROPAGE              000020  00005B  00003C  00001
 BSS                   000100  000208  000109  00001
 LORAM                 000209  000394  00018C  00001
 HIRAM                 7E2000  7E3FFF  002000  00100
-CODE                  C00000  C00A2D  000A2E  00001
-RODATA                C00A2E  C04C2D  004200  00001
+CODE                  C00000  C00A2A  000A2B  00001
+RODATA                C00A2B  C04C2A  004200  00001
 LIBSFX                C08000  C086E9  0006EA  00001
 HEADER                C0FFB0  C0FFDF  000030  00001
 VECTORS               C0FFE0  C0FFFF  000020  00001
@@ -276,7 +276,7 @@ __HIRAM_LAST__ ([linker generated]):
 __HIRAM_SIZE__ ([linker generated]):
 __HIRAM_START__ ([linker generated]):
 __LIBSFX_SMP_LOAD__ ([linker generated]):
-    molasses.o                src/molasses.s:931
+    molasses.o                src/molasses.s:928
     SMP.o                     ../libSFX/include/CPU/SMP.s:477
     Runtime.o                 ../libSFX/include/CPU/Runtime.s:237
     Library.o                 ../libSFX/include/CPU/Library.s:353
