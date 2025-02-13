@@ -1,0 +1,337 @@
+Modules list:
+-------------
+Header.o:
+    CODE              Offs=000000  Size=000000  Align=00001  Fill=0000
+    RODATA            Offs=000000  Size=000000  Align=00001  Fill=0000
+    BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
+    DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
+    ZEROPAGE          Offs=000000  Size=000000  Align=00001  Fill=0000
+    NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
+    HEADER            Offs=000000  Size=000030  Align=00001  Fill=0000
+    VECTORS           Offs=000000  Size=000020  Align=00001  Fill=0000
+Library.o:
+    CODE              Offs=000000  Size=000000  Align=00001  Fill=0000
+    RODATA            Offs=000000  Size=000000  Align=00001  Fill=0000
+    BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
+    DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
+    ZEROPAGE          Offs=000000  Size=000000  Align=00001  Fill=0000
+    NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
+    LIBSFX            Offs=000000  Size=0002C3  Align=00001  Fill=0000
+Runtime.o:
+    CODE              Offs=000000  Size=000000  Align=00001  Fill=0000
+    RODATA            Offs=000000  Size=000000  Align=00001  Fill=0000
+    BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
+    DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
+    ZEROPAGE          Offs=000000  Size=00001B  Align=00001  Fill=0000
+    NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
+    LIBSFX            Offs=0002C3  Size=00012B  Align=00001  Fill=0000
+    ZPAD              Offs=000000  Size=000010  Align=00001  Fill=0000
+    ZNMI              Offs=000000  Size=000010  Align=00001  Fill=0000
+    LORAM             Offs=000000  Size=000100  Align=00001  Fill=0000
+SMP.o:
+    CODE              Offs=000000  Size=000000  Align=00001  Fill=0000
+    RODATA            Offs=000000  Size=000000  Align=00001  Fill=0000
+    BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
+    DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
+    ZEROPAGE          Offs=00001B  Size=000000  Align=00001  Fill=0000
+    NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
+    LIBSFX            Offs=0003EE  Size=0002FC  Align=00001  Fill=0000
+System.o700:
+    CODE              Offs=000000  Size=000000  Align=00001  Fill=0000
+    RODATA            Offs=000000  Size=000000  Align=00001  Fill=0000
+    BSS               Offs=000000  Size=000000  Align=00001  Fill=0000
+    DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
+    ZEROPAGE          Offs=00001B  Size=000000  Align=00001  Fill=0000
+    NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
+    LIBSFX_SMP        Offs=000000  Size=00004A  Align=00001  Fill=0000
+molasses.o:
+    CODE              Offs=000000  Size=000A2E  Align=00001  Fill=0000
+    RODATA            Offs=000000  Size=004200  Align=00001  Fill=0000
+    BSS               Offs=000000  Size=000109  Align=00001  Fill=0000
+    DATA              Offs=000000  Size=000000  Align=00001  Fill=0000
+    ZEROPAGE          Offs=00001B  Size=000021  Align=00001  Fill=0000
+    NULL              Offs=000000  Size=000000  Align=00001  Fill=0000
+    ABS0DATA          Offs=000000  Size=000248  Align=00100  Fill=0000
+    ROM1              Offs=000000  Size=004000  Align=00001  Fill=0000
+    ROM2              Offs=000000  Size=007A39  Align=00100  Fill=0000
+    HIRAM             Offs=000000  Size=002000  Align=00100  Fill=0000
+    LORAM             Offs=000100  Size=00008C  Align=00001  Fill=0000
+
+
+Segment list:
+-------------
+Name                   Start     End    Size  Align
+----------------------------------------------------
+DATA                  000000  000000  000000  00001
+NULL                  000000  000000  000000  00001
+ZPAD                  000000  00000F  000010  00001
+LIBSFX_SMP            000002  00004B  00004A  00001
+ZNMI                  000010  00001F  000010  00001
+ZEROPAGE              000020  00005B  00003C  00001
+BSS                   000100  000208  000109  00001
+LORAM                 000209  000394  00018C  00001
+HIRAM                 7E2000  7E3FFF  002000  00100
+CODE                  C00000  C00A2D  000A2E  00001
+RODATA                C00A2E  C04C2D  004200  00001
+LIBSFX                C08000  C086E9  0006EA  00001
+HEADER                C0FFB0  C0FFDF  000030  00001
+VECTORS               C0FFE0  C0FFFF  000020  00001
+ABS0DATA              C18000  C18247  000248  00100
+ROM1                  C18248  C1C247  004000  00001
+ROM2                  C20000  C27A38  007A39  00100
+
+
+Exports list by name:
+---------------------
+BootVector                C082C3 RLA    EmptyVBlank               C083ED  LA    
+EmptyVector               C083B3 RLA    IRQVector                 C083B4 RLA    
+Main                      C002E8 RLA    RPAD                      000209  LA    
+SFX_CGRAM_memcpy          C08087 RLA    SFX_INIT_mmio             C080A1 RLA    
+SFX_INIT_oam              C0816A  LA    SFX_PPU_is_ntsc           C081A0  LA    
+SFX_SMP_exec              C0840F  LA    SFX_SMP_execspc           C08426  LA    
+SFX_SMP_jmp               C083F7  LA    SFX_SMP_ready             C083EE  LA    
+SFX_VRAM_memcpy           C0806B  LA    SFX_VRAM_memset           C08044 RLA    
+SFX_WAIT_vbl              C08195 RLA    SFX_WRAM_memcpy           C0802C  LA    
+SFX_WRAM_memset           C08000 RLA    SFX_inidisp               00002B RLZ    
+SFX_irq_jml               000024  LZ    SFX_joy1cont              000033 RLZ    
+SFX_joy1trig              000035  LZ    SFX_joy2cont              000037  LZ    
+SFX_joy2trig              000039  LZ    SFX_mvn                   00002F  LZ    
+SFX_mvn_dst               000030  LZ    SFX_mvn_src               000031  LZ    
+SFX_nmi_jml               000020 RLZ    SFX_nmi_store             000028  LZ    
+SFX_nmitimen              00002C RLZ    SFX_restore_nmi           C083E5  LA    
+SFX_stash_nmi             C083D3  LA    SFX_tick                  00002D  LZ    
+SMP_Burst                 000002 RLA    SMP_Burst_END             00002D RLA    
+SMP_SetDSP                00002D RLA    SMP_SetDSP_END            00004C RLA    
+VBlankVector              C08356 RLA    ZNMI                      000010  LZ    
+ZPAD                      000000 RLZ    __EXRAM_FILEOFFS__        000000  EA    
+__EXRAM_LAST__            7F0000  LA    __EXRAM_SIZE__            010000  EA    
+__EXRAM_START__           7F0000  LA    __HIRAM_FILEOFFS__        000000  EA    
+__HIRAM_LAST__            7E4000  LA    __HIRAM_SIZE__            00E000  EA    
+__HIRAM_START__           7E2000  LA    __LIBSFX_SMP_LOAD__       C086EA RLA    
+__LIBSFX_SMP_RUN__        000002  LA    __LIBSFX_SMP_SIZE__       00004A  EA    
+__LORAM_FILEOFFS__        000000  EA    __LORAM_LAST__            000395  LA    
+__LORAM_SIZE__            001E00  EA    __LORAM_START__           000100  LA    
+__RPADSIZE__              000100  EA    __STACKSIZE__             000100 REA    
+__STACK_FILEOFFS__        000000  EA    __STACK_LAST__            001F00  LA    
+__STACK_SIZE__            000100  EA    __STACK_START__           001F00  LA    
+__ZNMISIZE__              000010 REA    __ZNMI_FILEOFFS__         000000  EA    
+__ZNMI_LAST__             000020  LA    __ZNMI_SIZE__             000010  EA    
+__ZNMI_START__            000010  LA    __ZPADSIZE__              000010 REA    
+__ZPAD_FILEOFFS__         000000  EA    __ZPAD_LAST__             000010  LA    
+__ZPAD_SIZE__             000010  EA    __ZPAD_START__            000000  LA    
+__ZPAGE_FILEOFFS__        000000  EA    __ZPAGE_LAST__            00005C  LA    
+__ZPAGE_SIZE__            0000E0  EA    __ZPAGE_START__           000020  LA    
+spcBoot                   C00000  LA    spcClone                  C002DE  LA    
+spcEffect                 C002C1  LA    spcFadeModuleVolume       C002B7  LA    
+spcFlush                  C0020B  LA    spcFxParams               C002D4  LA    
+spcGetCues                C00294  LA    spcGlobalVolume           C002A9  LA    
+spcLoad                   C00073  LA    spcLoadEffect             C001A6  LA    
+spcPlay                   C0026A  LA    spcProcess                C00217  LA    
+spcReadPosition           C00285  LA    spcReadStatus             C00276  LA    
+spcSetBank                C00070  LA    spcSetModuleVolume        C002B0  LA    
+spcStop                   C00271  LA    
+
+
+Exports list by value:
+----------------------
+__ZNMI_FILEOFFS__         000000  EA    __ZPAD_START__            000000  LA    
+__HIRAM_FILEOFFS__        000000  EA    __STACK_FILEOFFS__        000000  EA    
+__LORAM_FILEOFFS__        000000  EA    __EXRAM_FILEOFFS__        000000  EA    
+ZPAD                      000000 RLZ    __ZPAGE_FILEOFFS__        000000  EA    
+__ZPAD_FILEOFFS__         000000  EA    __LIBSFX_SMP_RUN__        000002  LA    
+SMP_Burst                 000002 RLA    ZNMI                      000010  LZ    
+__ZNMI_START__            000010  LA    __ZPAD_SIZE__             000010  EA    
+__ZPAD_LAST__             000010  LA    __ZNMI_SIZE__             000010  EA    
+__ZNMISIZE__              000010 REA    __ZPADSIZE__              000010 REA    
+__ZPAGE_START__           000020  LA    SFX_nmi_jml               000020 RLZ    
+__ZNMI_LAST__             000020  LA    SFX_irq_jml               000024  LZ    
+SFX_nmi_store             000028  LZ    SFX_inidisp               00002B RLZ    
+SFX_nmitimen              00002C RLZ    SFX_tick                  00002D  LZ    
+SMP_SetDSP                00002D RLA    SMP_Burst_END             00002D RLA    
+SFX_mvn                   00002F  LZ    SFX_mvn_dst               000030  LZ    
+SFX_mvn_src               000031  LZ    SFX_joy1cont              000033 RLZ    
+SFX_joy1trig              000035  LZ    SFX_joy2cont              000037  LZ    
+SFX_joy2trig              000039  LZ    __LIBSFX_SMP_SIZE__       00004A  EA    
+SMP_SetDSP_END            00004C RLA    __ZPAGE_LAST__            00005C  LA    
+__ZPAGE_SIZE__            0000E0  EA    __RPADSIZE__              000100  EA    
+__LORAM_START__           000100  LA    __STACK_SIZE__            000100  EA    
+__STACKSIZE__             000100 REA    RPAD                      000209  LA    
+__LORAM_LAST__            000395  LA    __LORAM_SIZE__            001E00  EA    
+__STACK_START__           001F00  LA    __STACK_LAST__            001F00  LA    
+__HIRAM_SIZE__            00E000  EA    __EXRAM_SIZE__            010000  EA    
+__HIRAM_START__           7E2000  LA    __HIRAM_LAST__            7E4000  LA    
+__EXRAM_LAST__            7F0000  LA    __EXRAM_START__           7F0000  LA    
+spcBoot                   C00000  LA    spcSetBank                C00070  LA    
+spcLoad                   C00073  LA    spcLoadEffect             C001A6  LA    
+spcFlush                  C0020B  LA    spcProcess                C00217  LA    
+spcPlay                   C0026A  LA    spcStop                   C00271  LA    
+spcReadStatus             C00276  LA    spcReadPosition           C00285  LA    
+spcGetCues                C00294  LA    spcGlobalVolume           C002A9  LA    
+spcSetModuleVolume        C002B0  LA    spcFadeModuleVolume       C002B7  LA    
+spcEffect                 C002C1  LA    spcFxParams               C002D4  LA    
+spcClone                  C002DE  LA    Main                      C002E8 RLA    
+SFX_WRAM_memset           C08000 RLA    SFX_WRAM_memcpy           C0802C  LA    
+SFX_VRAM_memset           C08044 RLA    SFX_VRAM_memcpy           C0806B  LA    
+SFX_CGRAM_memcpy          C08087 RLA    SFX_INIT_mmio             C080A1 RLA    
+SFX_INIT_oam              C0816A  LA    SFX_WAIT_vbl              C08195 RLA    
+SFX_PPU_is_ntsc           C081A0  LA    BootVector                C082C3 RLA    
+VBlankVector              C08356 RLA    EmptyVector               C083B3 RLA    
+IRQVector                 C083B4 RLA    SFX_stash_nmi             C083D3  LA    
+SFX_restore_nmi           C083E5  LA    EmptyVBlank               C083ED  LA    
+SFX_SMP_ready             C083EE  LA    SFX_SMP_jmp               C083F7  LA    
+SFX_SMP_exec              C0840F  LA    SFX_SMP_execspc           C08426  LA    
+__LIBSFX_SMP_LOAD__       C086EA RLA    
+
+
+Imports list:
+-------------
+BootVector (Runtime.o):
+    Header.o                  ../libSFX/include/CPU/../CPU_Runtime.i:72
+EmptyVBlank (Runtime.o):
+EmptyVector (Runtime.o):
+    Header.o                  ../libSFX/include/CPU/../CPU_Runtime.i:72
+IRQVector (Runtime.o):
+    Header.o                  ../libSFX/include/CPU/../CPU_Runtime.i:72
+Main (molasses.o):
+    Runtime.o                 ../libSFX/include/CPU/../CPU_Runtime.i:72
+RPAD (Runtime.o):
+SFX_CGRAM_memcpy (Library.o):
+    molasses.o                ../libSFX/include/CPU_Memory.i:8
+SFX_INIT_mmio (Library.o):
+    Runtime.o                 ../libSFX/include/CPU/../CPU_PPU.i:7
+SFX_INIT_oam (Library.o):
+SFX_PPU_is_ntsc (Library.o):
+SFX_SMP_exec (SMP.o):
+SFX_SMP_execspc (SMP.o):
+SFX_SMP_jmp (SMP.o):
+SFX_SMP_ready (SMP.o):
+SFX_VRAM_memcpy (Library.o):
+SFX_VRAM_memset (Library.o):
+    Runtime.o                 ../libSFX/include/CPU/../CPU_Memory.i:7
+SFX_WAIT_vbl (Library.o):
+    SMP.o                     ../libSFX/include/CPU/../CPU_PPU.i:8
+    Runtime.o                 ../libSFX/include/CPU/../CPU_PPU.i:8
+SFX_WRAM_memcpy (Library.o):
+SFX_WRAM_memset (Library.o):
+    molasses.o                ../libSFX/include/CPU_Memory.i:7
+    Runtime.o                 ../libSFX/include/CPU/../CPU_Memory.i:7
+SFX_inidisp (Runtime.o):
+    molasses.o                ../libSFX/include/CPU_Runtime.i:77
+    Library.o                 ../libSFX/include/CPU/../CPU_Runtime.i:77
+SFX_irq_jml (Runtime.o):
+SFX_joy1cont (Runtime.o):
+    molasses.o                ../libSFX/include/CPU_Runtime.i:89
+SFX_joy1trig (Runtime.o):
+SFX_joy2cont (Runtime.o):
+SFX_joy2trig (Runtime.o):
+SFX_mvn (Runtime.o):
+SFX_mvn_dst (Runtime.o):
+SFX_mvn_src (Runtime.o):
+SFX_nmi_jml (Runtime.o):
+    molasses.o                ../libSFX/include/CPU_Runtime.i:77
+SFX_nmi_store (Runtime.o):
+SFX_nmitimen (Runtime.o):
+    molasses.o                ../libSFX/include/CPU_Runtime.i:77
+    SMP.o                     ../libSFX/include/CPU/../CPU_Runtime.i:77
+SFX_restore_nmi (Runtime.o):
+SFX_stash_nmi (Runtime.o):
+SFX_tick (Runtime.o):
+SMP_Burst (System.o700):
+    molasses.o                ../libSFX/include/CPU_SMP.i:10
+    SMP.o                     ../libSFX/include/CPU/../CPU_SMP.i:10
+    Runtime.o                 ../libSFX/include/CPU/../CPU_SMP.i:10
+    Library.o                 ../libSFX/include/CPU/../CPU_SMP.i:10
+    Header.o                  ../libSFX/include/CPU/../CPU_SMP.i:10
+SMP_Burst_END (System.o700):
+    molasses.o                ../libSFX/include/CPU_SMP.i:10
+    SMP.o                     ../libSFX/include/CPU/../CPU_SMP.i:10
+    Runtime.o                 ../libSFX/include/CPU/../CPU_SMP.i:10
+    Library.o                 ../libSFX/include/CPU/../CPU_SMP.i:10
+    Header.o                  ../libSFX/include/CPU/../CPU_SMP.i:10
+SMP_SetDSP (System.o700):
+    molasses.o                ../libSFX/include/CPU_SMP.i:10
+    SMP.o                     ../libSFX/include/CPU/../CPU_SMP.i:10
+    Runtime.o                 ../libSFX/include/CPU/../CPU_SMP.i:10
+    Library.o                 ../libSFX/include/CPU/../CPU_SMP.i:10
+    Header.o                  ../libSFX/include/CPU/../CPU_SMP.i:10
+SMP_SetDSP_END (System.o700):
+    molasses.o                ../libSFX/include/CPU_SMP.i:10
+    SMP.o                     ../libSFX/include/CPU/../CPU_SMP.i:10
+    Runtime.o                 ../libSFX/include/CPU/../CPU_SMP.i:10
+    Library.o                 ../libSFX/include/CPU/../CPU_SMP.i:10
+    Header.o                  ../libSFX/include/CPU/../CPU_SMP.i:10
+VBlankVector (Runtime.o):
+    Header.o                  ../libSFX/include/CPU/../CPU_Runtime.i:72
+ZNMI (Runtime.o):
+ZPAD (Runtime.o):
+    molasses.o                ../libSFX/include/CPU_Runtime.i:76
+    SMP.o                     ../libSFX/include/CPU/../CPU_Runtime.i:76
+    Library.o                 ../libSFX/include/CPU/../CPU_Runtime.i:76
+__EXRAM_FILEOFFS__ ([linker generated]):
+__EXRAM_LAST__ ([linker generated]):
+__EXRAM_SIZE__ ([linker generated]):
+__EXRAM_START__ ([linker generated]):
+__HIRAM_FILEOFFS__ ([linker generated]):
+__HIRAM_LAST__ ([linker generated]):
+__HIRAM_SIZE__ ([linker generated]):
+__HIRAM_START__ ([linker generated]):
+__LIBSFX_SMP_LOAD__ ([linker generated]):
+    molasses.o                src/molasses.s:931
+    SMP.o                     ../libSFX/include/CPU/SMP.s:477
+    Runtime.o                 ../libSFX/include/CPU/Runtime.s:237
+    Library.o                 ../libSFX/include/CPU/Library.s:353
+    Header.o                  ../libSFX/include/CPU/Header.s:43
+__LIBSFX_SMP_RUN__ ([linker generated]):
+__LIBSFX_SMP_SIZE__ ([linker generated]):
+__LORAM_FILEOFFS__ ([linker generated]):
+__LORAM_LAST__ ([linker generated]):
+__LORAM_SIZE__ ([linker generated]):
+__LORAM_START__ ([linker generated]):
+__RPADSIZE__ ([linker generated]):
+__STACKSIZE__ ([linker generated]):
+    [linker generated]        Map.cfg:16
+    [linker generated]        Map.cfg:16
+    [linker generated]        Map.cfg:15
+__STACK_FILEOFFS__ ([linker generated]):
+__STACK_LAST__ ([linker generated]):
+__STACK_SIZE__ ([linker generated]):
+__STACK_START__ ([linker generated]):
+__ZNMISIZE__ ([linker generated]):
+    [linker generated]        Map.cfg:14
+    [linker generated]        Map.cfg:14
+    [linker generated]        Map.cfg:13
+__ZNMI_FILEOFFS__ ([linker generated]):
+__ZNMI_LAST__ ([linker generated]):
+__ZNMI_SIZE__ ([linker generated]):
+__ZNMI_START__ ([linker generated]):
+__ZPADSIZE__ ([linker generated]):
+    [linker generated]        Map.cfg:14
+    [linker generated]        Map.cfg:14
+    [linker generated]        Map.cfg:13
+    [linker generated]        Map.cfg:12
+__ZPAD_FILEOFFS__ ([linker generated]):
+__ZPAD_LAST__ ([linker generated]):
+__ZPAD_SIZE__ ([linker generated]):
+__ZPAD_START__ ([linker generated]):
+__ZPAGE_FILEOFFS__ ([linker generated]):
+__ZPAGE_LAST__ ([linker generated]):
+__ZPAGE_SIZE__ ([linker generated]):
+__ZPAGE_START__ ([linker generated]):
+spcBoot (molasses.o):
+spcClone (molasses.o):
+spcEffect (molasses.o):
+spcFadeModuleVolume (molasses.o):
+spcFlush (molasses.o):
+spcFxParams (molasses.o):
+spcGetCues (molasses.o):
+spcGlobalVolume (molasses.o):
+spcLoad (molasses.o):
+spcLoadEffect (molasses.o):
+spcPlay (molasses.o):
+spcProcess (molasses.o):
+spcReadPosition (molasses.o):
+spcReadStatus (molasses.o):
+spcSetBank (molasses.o):
+spcSetModuleVolume (molasses.o):
+spcStop (molasses.o):
+

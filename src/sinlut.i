@@ -1,0 +1,28 @@
+;
+; Sine lut; 160 entries, 7 fixeds
+;
+
+.segment "ABS0DATA"
+.align $100
+sinlut:
+
+.word $0000, $0006, $000C, $0012, $0018, $001F, $0025, $002B
+.word $0030, $0036, $003C, $0041, $0047, $004C, $0051, $0055
+.word $005A, $005E, $0062, $0066, $006A, $006D, $0070, $0073
+.word $0076, $0078, $007A, $007C, $007D, $007E, $007F, $007F
+.word $007F, $007F, $007F, $007E, $007D, $007C, $007A, $0078
+.word $0076, $0073, $0070, $006D, $006A, $0066, $0062, $005E
+.word $005A, $0055, $0051, $004C, $0047, $0041, $003C, $0036
+.word $0030, $002B, $0025, $001F, $0018, $0012, $000C, $0006
+.word $0000, $FFFA, $FFF4, $FFEE, $FFE8, $FFE1, $FFDB, $FFD5
+.word $FFD0, $FFCA, $FFC4, $FFBF, $FFB9, $FFB4, $FFAF, $FFAB
+.word $FFA6, $FFA2, $FF9E, $FF9A, $FF96, $FF93, $FF90, $FF8D
+.word $FF8A, $FF88, $FF86, $FF84, $FF83, $FF82, $FF81, $FF81
+.word $FF81, $FF81, $FF81, $FF82, $FF83, $FF84, $FF86, $FF88
+.word $FF8A, $FF8D, $FF90, $FF93, $FF96, $FF9A, $FF9E, $FFA2
+.word $FFA6, $FFAB, $FFAF, $FFB4, $FFB9, $FFBF, $FFC4, $FFCA
+.word $FFD0, $FFD5, $FFDB, $FFE1, $FFE8, $FFEE, $FFF4, $FFFA
+.word $0000, $0006, $000C, $0012, $0018, $001F, $0025, $002B
+.word $0030, $0036, $003C, $0041, $0047, $004C, $0051, $0055
+.word $005A, $005E, $0062, $0066, $006A, $006D, $0070, $0073
+.word $0076, $0078, $007A, $007C, $007D, $007E, $007F, $007F

@@ -1,0 +1,84 @@
+#include <windows.h>
+#include "../src/main.h"
+
+GenericIcon ICON res/generic.ico
+
+GenericMenu MENU
+BEGIN
+ POPUP "&Game"
+   BEGIN
+		 MENUITEM "&New game", MENU_NEWGAME
+		 MENUITEM "&Settings", MENU_SETTINGS
+     MENUITEM "&Quit game", MENU_QUIT
+   END
+ POPUP "&Window"
+   BEGIN
+     MENUITEM "&Fullscreen", MENU_FULLSCREEN
+	   POPUP "&Window scale"
+		   BEGIN
+			   MENUITEM "&1x", MENU_SCALE_BASE
+				 MENUITEM "&2x", MENU_SCALE_2X
+				 MENUITEM "&3x", MENU_SCALE_3X
+				 MENUITEM "&4x", MENU_SCALE_4X
+			 END
+	 END
+ POPUP "&Help"
+   BEGIN
+     MENUITEM "&About MolassesProto...", MENU_ABOUT
+   END
+END
+
+AboutBox DIALOG 20, 10, 144, 75
+STYLE DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
+CAPTION "About MolassesProto"
+FONT 8, "Helv"
+BEGIN
+  ICON  "GenericIcon",     -1,  6,  6, 32, 32
+  LTEXT "MolassesProto", -1, 52,  6, 86, 10
+  LTEXT "Version 1.0",     -1, 52, 20, 86, 10
+  DEFPUSHBUTTON "OK",    IDOK, 44, 56, 50, 14, WS_GROUP
+END
+
+#if defined(__NT__)
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "manifest.xml"
+#endif
+
+/* Version information appears on a tab when  */
+/* file properties is selcted in Explorer.    */
+/* Explicit \0 in each string for WIN16 exe's */
+/* For documentation of the fields, try:      */
+/* http://tinyurl.com/z7377                   */
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION    1,0,0,0
+PRODUCTVERSION 1,0,0,0
+FILEFLAGSMASK  0x3fL
+#if defined(DEBUG) || defined(_DEBUG)
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+FILEOS         0x4L
+FILETYPE       0x1L
+FILESUBTYPE    0x0L
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904b0"
+    BEGIN
+      VALUE "Comments",         "This is just a prototype.\0"
+      VALUE "CompanyName",      "Nikku4211\0"
+      VALUE "FileDescription",  "Molasses prototype\0"
+      VALUE "FileVersion",      "1, 0, 0, 0\0"
+      VALUE "InternalName",     "MolassesProto\0"
+      VALUE "LegalCopyright",   "2024 Nikku4211\0"
+      VALUE "OriginalFilename", "MolassesProto.exe\0"
+      VALUE "ProductName",      "MolassesProto\0"
+      VALUE "ProductVersion",   "1, 0, 0, 0\0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 1252
+  END
+END
+
