@@ -3,7 +3,7 @@
 #include <math.h>
 
 #define M_PI 3.1415926535f
-#define SIN_SIZE 128
+#define SIN_SIZE 256
 #define SIN_FP 7
 
 int main(int argc, char *argv[])

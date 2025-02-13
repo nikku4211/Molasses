@@ -154,256 +154,207 @@ Main:
         
 polyrotation:
 ; x-
-        RW a8i8
-        ldx z:matrix_sx     ;xx = [cos(A)cos(B)]
-        lda sinlut+32,x
-        sta WRMPYA
-        ldx z:matrix_sy
-        lda sinlut+32,x
-        sta WRMPYB
-        nop
-        nop
         RW a16i8
+        ldx z:matrix_sx     ;xx = [cos(A)cos(B)]
+        ldy sinlut+32,x
+        sty WRMPYA
+        ldx z:matrix_sy
+        ldy sinlut+32,x
+        sty WRMPYB
+        nop
+        nop
+        nop
         lda RDMPYL
         sta matrix_xx
         
-        RW a8i8
+        
         ;x has sy
-        lda sinlut+32,x
-        sta WRMPYA
+        ldy sinlut+32,x
+        sty WRMPYA
         ldx z:matrix_sx     ;xy = [sin(A)cos(B)]
-        lda sinlut,x
-        sta WRMPYB
+        ldy sinlut,x
+        sty WRMPYB
         nop
         nop
-        RW a16i8
+        nop
         lda RDMPYL
         sta matrix_xy
         
-        RW a8i8
         ldx z:matrix_sy      ;xz = [sin(B)]
         lda sinlut,x
-        RW a16i8
         and #$00ff
         sta matrix_xz
         
 ; y-
-        RW a8i8
         ldx z:matrix_sx
-        lda sinlut,x
-        sta WRMPYA
+        ldy sinlut,x
+        sty WRMPYA
         ldx z:matrix_sz     ;yx = [sin(A)cos(C)
-        lda sinlut+32,x
-        sta WRMPYB
+        ldy sinlut+32,x
+        sty WRMPYB
         ldx z:matrix_sx
-        RW a16i8
+        nop
         lda RDMPYL
         sta z:ZPAD
-        RW a8i8
-        lda sinlut+32,x
-        sta WRMPYA
+        ldy sinlut+32,x
+        sty WRMPYA
         ldx z:matrix_sy     ;+ cos(A)sin(B)sin(C)]
-        lda sinlut,x
-        sta WRMPYB
+        ldy sinlut,x
+        sty WRMPYB
         nop
         ldx z:matrix_sz
-        lda RDMPYL
-        sta WRMPYA
-        lda sinlut,x
-        sta WRMPYB
+        ldy RDMPYH
+        sty WRMPYA
+        ldy sinlut,x
+        sty WRMPYB
         nop
         nop
-        RW a16i8
+        nop
         lda RDMPYL
         add z:ZPAD
         sta matrix_yx
         
-        RW a8i8
         ldx z:matrix_sx
-        lda sinlut+32,x
-        sta WRMPYA
+        ldy sinlut+32,x
+        sty WRMPYA
         ldx z:matrix_sz     ;yy = [-cos(A)cos(C)
-        lda sinlut+32,x
-        sta WRMPYB
+        ldy sinlut+32,x
+        sty WRMPYB
         ldx z:matrix_sx
-        RW a16i8
+        nop
         lda RDMPYL
         sta z:ZPAD
-        RW a8i8
-        lda sinlut,x
-        sta WRMPYA
+        ldy sinlut,x
+        sty WRMPYA
         ldx z:matrix_sy     ;+ sin(A)sin(B)sin(C)]
-        lda sinlut,x
-        sta WRMPYB
+        ldy sinlut,x
+        sty WRMPYB
         ldx z:matrix_sz
-        lda RDMPYL
-        sta WRMPYA
-        lda sinlut,x
-        sta WRMPYB
+        ldy RDMPYH
+        sty WRMPYA
+        ldy sinlut,x
+        sty WRMPYB
         nop
         nop
-        RW a16i8
+        nop
         lda RDMPYL
         sub z:ZPAD
         sta matrix_yy
         
-        RW a8i8
         ;x has sz
-        lda sinlut,x
-        sta WRMPYA
+        ldy sinlut,x
+        sty WRMPYA
         ldx z:matrix_sy     ;yz = [-cos(B)sin(C)]
-        lda sinlut+32,x
-        sta WRMPYB
+        ldy sinlut+32,x
+        sty WRMPYB
         nop
         nop
-        RW a16i8
+        nop
         lda RDMPYL
         neg
         sta matrix_yz
         
 ; z-
-        RW a8i8
         ldx z:matrix_sx
-        lda sinlut+32,x
-        sta WRMPYA
+        ldy sinlut+32,x
+        sty WRMPYA
         ldx z:matrix_sy     ;zx = [sin(A)sin(C) - cos(A)sin(B)cos(C)]
-        lda sinlut,x
-        sta WRMPYB
+        ldy sinlut,x
+        sty WRMPYB
         nop
         ldx z:matrix_sz
-        lda RDMPYL
-        sta WRMPYA
-        lda sinlut+32,x
-        sta WRMPYB
+        ldy RDMPYH
+        sty WRMPYA
+        ldy sinlut+32,x
+        sty WRMPYB
         ldx z:matrix_sz
-        RW a16i8
+        nop
         lda RDMPYL
         sta z:ZPAD
-        RW a8i8
-        lda sinlut,x
-        sta WRMPYA
+        ldy sinlut,x
+        sty WRMPYA
         ldx z:matrix_sz
-        lda sinlut,x
-        sta WRMPYB
+        ldy sinlut,x
+        sty WRMPYB
         nop
         nop
-        RW a16i8
+        nop
         lda RDMPYL
         sub z:ZPAD
         sta matrix_zx
         
-        RW a8i8
         ldx z:matrix_sx
-        lda sinlut+32,x
-        sta WRMPYA
+        ldy sinlut+32,x
+        sty WRMPYA
         ldx z:matrix_sz     ;zy = [-cos(A)sin(C)
-        lda sinlut,x
-        sta WRMPYB
+        ldy sinlut,x
+        sty WRMPYB
         ldx z:matrix_sx
-        RW a16i8
+        nop
         lda RDMPYL
         sta z:ZPAD
-        RW a8i8
-        lda sinlut,x
-        sta WRMPYA
+        ldy sinlut,x
+        sty WRMPYA
         ldx z:matrix_sy     ;- sin(A)sin(B)cos(C)]
-        lda sinlut,x
-        sta WRMPYB
+        ldy sinlut,x
+        sty WRMPYB
         nop
         ldx z:matrix_sx
-        lda RDMPYL
-        sta WRMPYA
-        lda sinlut+64,x
-        sta WRMPYB
+        ldy RDMPYH
+        sty WRMPYA
+        ldy sinlut+64,x
+        sty WRMPYB
         nop
         nop
-        RW a16i8
+        nop
         lda RDMPYL
         neg
         sub z:ZPAD
         sta matrix_zy
-        
-        RW a8i8
+
         ldx z:matrix_sy     ;zz = [cos(B)cos(C)]
-        lda sinlut+32,x
-        sta WRMPYA
+        ldy sinlut+32,x
+        sty WRMPYA
         ldx z:matrix_sz
-        lda sinlut+32,x
-        sta WRMPYB
+        ldy sinlut+32,x
+        sty WRMPYB
         nop
         nop
-        RW a16i8
+        nop
         lda RDMPYL
         sta matrix_zz
 
-; -x*-y
+; ?x*?y
         RW a8i16
-        lda matrix_xx ;xx_xy = xx*xy
+        lda matrix_xx+1 ;xx_xy = xx*xy
         sta WRMPYA
-        lda matrix_xy
-        sta WRMPYB
-        nop
         lda matrix_xy+1
+        sta WRMPYB
+        nop
+        nop
+        nop
         ldx RDMPYL
-        stx z:ZPAD
-        sta WRMPYB
-        nop
-        lda matrix_xx+1
-        ldy RDMPYL
-        sty z:ZPAD+2
-        sta WRMPYA
-        lda matrix_xy
-        sta WRMPYB
-        RW a16i8
-        lda z:ZPAD
-        add z:ZPAD+2
-        add RDMPYL
-        sta matrix_xx_xy
+        stx matrix_xx_xy
         
-        RW a8i16
-        lda matrix_yx ;yx_yy = yx*yy
+        lda matrix_yx+1 ;yx_yy = yx*yy
         sta WRMPYA
-        lda matrix_yy
-        sta WRMPYB
-        nop
         lda matrix_yy+1
-        ldx RDMPYL
-        stx z:ZPAD
         sta WRMPYB
         nop
-        lda matrix_yx+1
-        ldy RDMPYL
-        sty z:ZPAD+2
-        sta WRMPYA
-        lda matrix_yy
-        sta WRMPYB
-        RW a16i8
-        lda z:ZPAD
-        add z:ZPAD+2
-        add RDMPYL
-        sta matrix_yx_yy
+        nop
+        nop
+        ldx RDMPYL
+        stx matrix_yx_yy
         
-        RW a8i16
-        lda matrix_zx ;zx_zy = zx*zy
+        lda matrix_zx+1 ;zx_zy = zx*zy
         sta WRMPYA
-        lda matrix_zy
-        sta WRMPYB
-        nop
         lda matrix_zy+1
-        ldx RDMPYL
-        stx z:ZPAD
         sta WRMPYB
         nop
-        lda matrix_zx+1
+        nop
+        nop
         ldx RDMPYL
-        sta WRMPYA
-        lda matrix_zy
-        sta WRMPYB
-        RW a16i16
-        txa
-        add z:ZPAD
-        add RDMPYL
-        sta matrix_zx_zy
+        stx matrix_zx_zy
         
         ldy #0
 polyrotationloop:
@@ -413,7 +364,7 @@ polyrotationloop:
         ;multiplication next
         ;then both adding and subtracting together
         ;
-        RW a8i16
+        RW_forced a8i16
         lda a:cube_x,y ;but before all that, let's precalc x*y
         sta WRMPYA
         lda a:cube_y,y
@@ -472,27 +423,17 @@ polyrotationloop:
         sta matrix_z_xz
         
         RW a8i16
-        lda z:ZPAD ;(xx + y)(xy + x)
+        lda z:ZPAD+1 ;(xx + y)(xy + x)
         sta WRMPYA
-        lda z:ZPAD+2
-        sta WRMPYB
-        nop
-        lda z:ZPAD+1
-        ldx RDMPYL
-        stx z:ZPAD+6
-        sta WRMPYB
-        nop
         lda z:ZPAD+3
-        ldx RDMPYL
-        sta WRMPYA
-        lda z:ZPAD
         sta WRMPYB
-        RW a16i16
-        txa
-        add z:ZPAD+6
-        add RDMPYL
-        sta z:ZPAD+8
+        nop
+        nop
+        nop
+        ldx RDMPYL
+        stx z:ZPAD+8
         
+        RW a16i16
         lda z:ZPAD+8 ;(xx + y)(xy + x) + z*xz - (xx_xy + x_y)
         add matrix_z_xz
         sub z:ZPAD+4
@@ -533,27 +474,17 @@ polyrotationloop:
         sta matrix_z_yz
         
         RW a8i16
-        lda z:ZPAD ;(yx + y)(yy + x)
+        lda z:ZPAD+1 ;(yx + y)(yy + x)
         sta WRMPYA
-        lda z:ZPAD+2
-        sta WRMPYB
-        nop
-        lda z:ZPAD+1
-        ldx RDMPYL
-        stx z:ZPAD+6
-        sta WRMPYB
-        nop
         lda z:ZPAD+3
-        ldx RDMPYL
-        sta WRMPYA
-        lda z:ZPAD
         sta WRMPYB
-        RW a16i16
-        txa
-        add z:ZPAD+6
-        add RDMPYL
-        sta z:ZPAD+8
+        nop
+        nop
+        nop
+        ldx RDMPYL
+        stx z:ZPAD+8
         
+        RW a16i16
         lda z:ZPAD+8 ;(yx + y)(yy + x) + z*yz - (yx_yy + x_y)
         add matrix_z_yz
         sub z:ZPAD+4
@@ -594,27 +525,17 @@ polyrotationloop:
         sta matrix_z_zz
         
         RW a8i16
-        lda z:ZPAD ;(zx + y)(zy + x)
+        lda z:ZPAD+1 ;(zx + y)(zy + x)
         sta WRMPYA
-        lda z:ZPAD+2
-        sta WRMPYB
-        nop
-        lda z:ZPAD+1
-        ldx RDMPYL
-        stx z:ZPAD+6
-        sta WRMPYB
-        nop
         lda z:ZPAD+3
-        ldx RDMPYL
-        sta WRMPYA
-        lda z:ZPAD
         sta WRMPYB
-        RW a16i16
-        txa
-        add z:ZPAD+6
-        add RDMPYL
-        sta z:ZPAD+8
+        nop
+        nop
+        nop
+        ldx RDMPYL
+        stx z:ZPAD+8
         
+        RW a16i16
         lda z:ZPAD+8 ;(zx + y)(zy + x) + z*zz - (zx_zy + x_y)
         add matrix_z_zz
         sub z:ZPAD+4
