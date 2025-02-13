@@ -1,0 +1,8 @@
+.build/
+.build_libsfx/
+proto/
+*.sfc
+*.cpu.sym
+*.dbg
+*.dmap
+*.7z
