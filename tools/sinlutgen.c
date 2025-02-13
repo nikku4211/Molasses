@@ -16,20 +16,20 @@ int main(int argc, char *argv[])
 			printf("please specify a file\n");
 			return 1;
 		}
-    unsigned short hw;
+    unsigned char hw;
 
     fprintf(fp, ";\n; Sine lut; %d entries, %d fixeds\n;\n\n", 
         SIN_SIZE+32, SIN_FP);
     fprintf(fp, ".segment \"ABS0DATA\"\n.align $100\nsinlut:\n");
     for(ii=0; ii<SIN_SIZE+32; ii++)
     {
-        hw= (unsigned short)(sin(ii*2*M_PI/SIN_SIZE)*(1<<SIN_FP));
+        hw= (unsigned char)(sin(ii*2*M_PI/SIN_SIZE)*(1<<SIN_FP));
         if(ii%8 == 0)
-            fputs("\n.word ", fp);
+            fputs("\n.byte ", fp);
 				if (ii%8 == 7)
-					fprintf(fp, "$%04X", hw);
+					fprintf(fp, "$%02X", hw);
 				else
-					fprintf(fp, "$%04X, ", hw);
+					fprintf(fp, "$%02X, ", hw);
     }
     //fputs("\n};\n", fp);
 

@@ -146,518 +146,486 @@ Main:
         plb
 
         lda #INIT_SX ;initialise rotations
-        sta z:matrixsx
+        sta z:matrix_sx
         lda #INIT_SY
-        sta z:matrixsy
+        sta z:matrix_sy
         lda #INIT_SZ
-        sta z:matrixsz
+        sta z:matrix_sz
         
 polyrotation:
-matrixtprep:
+; x-
         RW a8i8
-        
-        ;t1
-        lda z:matrixsy
-        sub z:matrixsz
-        sta matrixt
-        
-        ;t2
-        lda z:matrixsy
-        add z:matrixsz
-        sta matrixt+1
-        
-        ;t3
-        lda z:matrixsx
-        add z:matrixsz
-        sta matrixt+2
-        
-        ;t4
-        lda z:matrixsx
-        sub z:matrixsz
-        sta matrixt+3
-        
-        ;t5
-        lda z:matrixsx
-        add matrixt+1
-        sta matrixt+4
-        
-        ;t6
-        lda z:matrixsx
-        sub matrixt
-        sta matrixt+5
-        
-        ;t7
-        lda z:matrixsx
-        add matrixt
-        sta matrixt+6
-        
-        ;t8
-        lda matrixt+1
-        sub z:matrixsx
-        sta matrixt+7
-        
-        ;t9
-        lda z:matrixsy
-        sub z:matrixsx
-        sta matrixt+8
-        
-        ;t10
-        lda z:matrixsy
-        add z:matrixsx
-        sta matrixt+9
-        
-matrixproductprep:
-        RW a16i8
-        
-        ;mA
-        lda matrixt+1
-        asl
-        sta z:ZPAD
-        lda matrixt
-        asl
-        tax
-        lda sinlut+64,x ;sinlut+64 = coslut
-        ldx z:ZPAD
-        add sinlut+64,x
-        sta matrixproduct
-        
-        ;mB
-        ; lda matrixt+1
-        ; asl
-        ; sta z:ZPAD
-        lda matrixt
-        asl
-        tax
-        lda sinlut,x
-        ldx z:ZPAD
-        sub sinlut,x
-        sta matrixproduct+2
-        
-        ;mC
-        lda z:matrixsy
-        asl
-        tax
-        lda sinlut,x
-        asl
-        sta matrixproduct+4
-        
-        ;mD
-        lda matrixt+3
-        asl
-        sta z:ZPAD
-        lda matrixt+2
-        asl
-        tax
-          ;(sin(t3)-sin(t4))/2
-        lda sinlut,x
-        ldx z:ZPAD
-        sub sinlut,x
-        sta matrixproduct+6
-        
-        lda matrixt+6
-        asl
-        sta z:ZPAD
-        lda matrixt+7
-        asl
-        sta z:ZPAD+2
-        lda matrixt+4
-        asl
-        sta z:ZPAD+4
-        lda matrixt+5
-        asl
-        tax ;(cos(t6)-cos(t5)+cos(t8)-cos(t7))/4
-        lda sinlut+64,x
-        ldx z:ZPAD+4
-        sub sinlut+64,x
-        ldx z:ZPAD+2
-        add sinlut+64,x
-        ldx z:ZPAD
-        sub sinlut+64,x
-        bpl :+
-        lsr
-        ora #$8000
-        bra :++
-:
-        lsr
-:
-        add matrixproduct+6
-        sta matrixproduct+6
-        
-        ;mE
-        lda matrixt+3
-        asl
-        sta z:ZPAD
-        lda matrixt+2 ;(cos(t3)+cos(t4))/2
-        asl
-        tax
-        lda sinlut+64,x
-        ldx z:ZPAD
-        add sinlut+64,x
-        sta matrixproduct+8
-        
-        lda matrixt+7
-        asl
-        sta z:ZPAD+4
-        lda matrixt+6
-        asl
-        sta z:ZPAD+2
-        lda matrixt+5
-        asl
-        sta z:ZPAD
-        lda matrixt+4 ;(sin(t5)-sin(t6)+sin(t7)-sin(t8))/4
-        asl
-        tax
-        lda sinlut,x
-        ldx z:ZPAD
-        sub sinlut,x
-        ldx z:ZPAD+2
-        sub sinlut,x
-        ldx z:ZPAD+4
-        sub sinlut,x
-        bpl :+
-        lsr
-        ora #$8000
-        bra :++
-:
-        lsr
-:
-        add matrixproduct+8
-        sta matrixproduct+8
-        
-        ;mF
-        lda matrixt+9
-        asl
-        sta z:ZPAD
-        lda matrixt+8
-        asl
-        tax
-        lda sinlut,x
-        ldx z:ZPAD
-        sub sinlut,x
-        sta matrixproduct+10
-        
-        ;mG
-        lda matrixt+2
-        asl
-        sta z:ZPAD
-        lda matrixt+3 ;(cos(t4)-cos(t3))/2
-        asl
-        tax
-        lda sinlut+64,x
-        ldx z:ZPAD
-        add sinlut+64,x
-        sta matrixproduct+12
-        
-        lda matrixt+6
-        asl
-        sta z:ZPAD+4
-        lda matrixt+7
-        asl
-        sta z:ZPAD+2
-        lda matrixt+4
-        asl
-        sta z:ZPAD
-        lda matrixt+5
-        asl
-        tax
-            ;(sin(t6)-sin(t5)-sin(t8)-sin(t7))/4
-        lda sinlut,x
-        ldx z:ZPAD
-        sub sinlut,x
-        ldx z:ZPAD+2
-        sub sinlut,x
-        ldx z:ZPAD+4
-        sub sinlut,x
-        bpl :+
-        lsr
-        ora #$8000
-        bra :++
-:
-        lsr
-:
-        add matrixproduct+12
-        sta matrixproduct+12
-        
-        ;mH
-        lda matrixt+3
-        asl
-        sta z:ZPAD
-        lda matrixt+2
-        asl
-        tax ;(sin(t3)+sin(t4))/2
-        lda sinlut,x
-        ldx z:ZPAD
-        add sinlut,x
-        sta matrixproduct+14
-        
-        lda matrixt+6
-        asl
-        sta z:ZPAD+4
-        lda matrixt+7
-        asl
-        sta z:ZPAD+2
-        lda matrixt+4
-        asl
-        sta z:ZPAD
-        lda matrixt+5
-        asl
-        tax ;(cos(t6)-cos(t5)+cos(t7)-cos(t8))/4
-        lda sinlut+64,x
-        ldx z:ZPAD
-        sub sinlut+64,x
-        ldx z:ZPAD+2
-        add sinlut+64,x
-        ldx z:ZPAD+4
-        sub sinlut+64,x
-        bpl :+
-        lsr
-        ora #$8000
-        bra :++
-:
-        lsr
-:
-        add matrixproduct+14
-        sta matrixproduct+14
-        
-        ;mI
-        lda matrixt+9
-        asl
-        sta z:ZPAD
-        lda matrixt+8
-        asl
-        tax
-        lda sinlut+64,x
-        ldx z:ZPAD
-        add sinlut+64,x
-        sta matrixproduct+16
-
-setuprotations:
-        
-        ;p1
-        lda matrixproduct
-        add matrixproduct+6
-        add matrixproduct+12
-        sta matrixpointx
-        
-        lda matrixproduct+2
-        add matrixproduct+8
-        add matrixproduct+14
-        sta matrixpointy
-        
-        lda matrixproduct+4
-        add matrixproduct+10
-        add matrixproduct+16
-        sta matrixpointz
-        
-        ;p2
-        lda matrixproduct
-        sub matrixproduct+6
-        add matrixproduct+12
-        sta matrixpointx+2
-        
-        lda matrixproduct+2
-        sub matrixproduct+8
-        add matrixproduct+14
-        sta matrixpointy+2
-        
-        lda matrixproduct+4
-        sub matrixproduct+10
-        add matrixproduct+16
-        sta matrixpointz+2
-        
-        ;p3
-        lda matrixproduct+12
-        sub matrixproduct
-        sub matrixproduct+6
-        sta matrixpointx+4
-        
-        lda matrixproduct+14
-        sub matrixproduct+2
-        sub matrixproduct+8
-        sta matrixpointy+4
-        
-        lda matrixproduct+16
-        sub matrixproduct+4
-        sub matrixproduct+10
-        sta matrixpointz+4
-        
-        ;p4
-        lda matrixproduct+12
-        add matrixproduct+6
-        sub matrixproduct
-        sta matrixpointx+6
-        
-        lda matrixproduct+14
-        add matrixproduct+8
-        sub matrixproduct+2
-        sta matrixpointy+6
-        
-        lda matrixproduct+16
-        add matrixproduct+10
-        sub matrixproduct+4
-        sta matrixpointz+6
-        
-        ;p5
-        lda matrixproduct
-        add matrixproduct+6
-        sub matrixproduct+12
-        sta matrixpointx+8
-        
-        lda matrixproduct+2
-        add matrixproduct+8
-        sub matrixproduct+14
-        sta matrixpointy+8
-        
-        lda matrixproduct+4
-        add matrixproduct+10
-        sub matrixproduct+16
-        sta matrixpointz+8
-        
-        ;p6
-        lda matrixproduct
-        sub matrixproduct+6
-        sub matrixproduct+12
-        sta matrixpointx+10
-        
-        lda matrixproduct+2
-        sub matrixproduct+8
-        sub matrixproduct+14
-        sta matrixpointy+10
-        
-        lda matrixproduct+4
-        sub matrixproduct+10
-        sub matrixproduct+16
-        sta matrixpointz+10
-        
-        ;p7
-        lda #0
-        sub matrixproduct
-        sub matrixproduct+6
-        sub matrixproduct+12
-        sta matrixpointx+12
-        
-        lda #0
-        sub matrixproduct+2
-        sub matrixproduct+8
-        sub matrixproduct+14
-        sta matrixpointy+12
-        
-        lda #0
-        sub matrixproduct+4
-        sub matrixproduct+10
-        sub matrixproduct+16
-        sta matrixpointz+12
-        
-        ;p8
-        lda matrixproduct+6
-        sub matrixproduct
-        sub matrixproduct+12
-        sta matrixpointx+14
-        
-        lda matrixproduct+8
-        sub matrixproduct+2
-        sub matrixproduct+14
-        sta matrixpointy+14
-        
-        lda matrixproduct+10
-        sub matrixproduct+4
-        sub matrixproduct+16
-        sta matrixpointz+14
-        
-rotatepoints:
-        RW a8i16
-        ldy #0
-pointrotationloop:
-@xpointrot:
-        RW_forced a8i16
-        stz z:ZPAD
-        lda a:cube_x+1,y ;8.8 fixed * int8
-        bpl :+
-        lda a:matrixpointx+1,y
+        ldx z:matrix_sx     ;xx = [cos(A)cos(B)]
+        lda sinlut+32,x
         sta WRMPYA
-        lda #$ff
+        ldx z:matrix_sy
+        lda sinlut+32,x
         sta WRMPYB
         nop
         nop
+        RW a16i8
+        lda RDMPYL
+        sta matrix_xx
+        
+        RW a8i8
+        ;x has sy
+        lda sinlut+32,x
+        sta WRMPYA
+        ldx z:matrix_sx     ;xy = [sin(A)cos(B)]
+        lda sinlut,x
+        sta WRMPYB
         nop
+        nop
+        RW a16i8
+        lda RDMPYL
+        sta matrix_xy
+        
+        RW a8i8
+        ldx z:matrix_sy      ;xz = [sin(B)]
+        lda sinlut,x
+        RW a16i8
+        and #$00ff
+        sta matrix_xz
+        
+; y-
+        RW a8i8
+        ldx z:matrix_sx
+        lda sinlut,x
+        sta WRMPYA
+        ldx z:matrix_sz     ;yx = [sin(A)cos(C)
+        lda sinlut+32,x
+        sta WRMPYB
+        ldx z:matrix_sx
+        RW a16i8
+        lda RDMPYL
+        sta z:ZPAD
+        RW a8i8
+        lda sinlut+32,x
+        sta WRMPYA
+        ldx z:matrix_sy     ;+ cos(A)sin(B)sin(C)]
+        lda sinlut,x
+        sta WRMPYB
+        nop
+        ldx z:matrix_sz
+        lda RDMPYL
+        sta WRMPYA
+        lda sinlut,x
+        sta WRMPYB
+        nop
+        nop
+        RW a16i8
+        lda RDMPYL
+        add z:ZPAD
+        sta matrix_yx
+        
+        RW a8i8
+        ldx z:matrix_sx
+        lda sinlut+32,x
+        sta WRMPYA
+        ldx z:matrix_sz     ;yy = [-cos(A)cos(C)
+        lda sinlut+32,x
+        sta WRMPYB
+        ldx z:matrix_sx
+        RW a16i8
+        lda RDMPYL
+        sta z:ZPAD
+        RW a8i8
+        lda sinlut,x
+        sta WRMPYA
+        ldx z:matrix_sy     ;+ sin(A)sin(B)sin(C)]
+        lda sinlut,x
+        sta WRMPYB
+        ldx z:matrix_sz
+        lda RDMPYL
+        sta WRMPYA
+        lda sinlut,x
+        sta WRMPYB
+        nop
+        nop
+        RW a16i8
+        lda RDMPYL
+        sub z:ZPAD
+        sta matrix_yy
+        
+        RW a8i8
+        ;x has sz
+        lda sinlut,x
+        sta WRMPYA
+        ldx z:matrix_sy     ;yz = [-cos(B)sin(C)]
+        lda sinlut+32,x
+        sta WRMPYB
+        nop
+        nop
+        RW a16i8
+        lda RDMPYL
+        neg
+        sta matrix_yz
+        
+; z-
+        RW a8i8
+        ldx z:matrix_sx
+        lda sinlut+32,x
+        sta WRMPYA
+        ldx z:matrix_sy     ;zx = [sin(A)sin(C) - cos(A)sin(B)cos(C)]
+        lda sinlut,x
+        sta WRMPYB
+        nop
+        ldx z:matrix_sz
+        lda RDMPYL
+        sta WRMPYA
+        lda sinlut+32,x
+        sta WRMPYB
+        ldx z:matrix_sz
+        RW a16i8
+        lda RDMPYL
+        sta z:ZPAD
+        RW a8i8
+        lda sinlut,x
+        sta WRMPYA
+        ldx z:matrix_sz
+        lda sinlut,x
+        sta WRMPYB
+        nop
+        nop
+        RW a16i8
+        lda RDMPYL
+        sub z:ZPAD
+        sta matrix_zx
+        
+        RW a8i8
+        ldx z:matrix_sx
+        lda sinlut+32,x
+        sta WRMPYA
+        ldx z:matrix_sz     ;zy = [-cos(A)sin(C)
+        lda sinlut,x
+        sta WRMPYB
+        ldx z:matrix_sx
+        RW a16i8
+        lda RDMPYL
+        sta z:ZPAD
+        RW a8i8
+        lda sinlut,x
+        sta WRMPYA
+        ldx z:matrix_sy     ;- sin(A)sin(B)cos(C)]
+        lda sinlut,x
+        sta WRMPYB
+        nop
+        ldx z:matrix_sx
+        lda RDMPYL
+        sta WRMPYA
+        lda sinlut+64,x
+        sta WRMPYB
+        nop
+        nop
+        RW a16i8
+        lda RDMPYL
+        neg
+        sub z:ZPAD
+        sta matrix_zy
+        
+        RW a8i8
+        ldx z:matrix_sy     ;zz = [cos(B)cos(C)]
+        lda sinlut+32,x
+        sta WRMPYA
+        ldx z:matrix_sz
+        lda sinlut+32,x
+        sta WRMPYB
+        nop
+        nop
+        RW a16i8
+        lda RDMPYL
+        sta matrix_zz
+
+; -x*-y
+        RW a8i16
+        lda matrix_xx ;xx_xy = xx*xy
+        sta WRMPYA
+        lda matrix_xy
+        sta WRMPYB
+        nop
+        lda matrix_xy+1
         ldx RDMPYL
         stx z:ZPAD
-        lda a:cube_x+1,y
-:
+        sta WRMPYB
+        nop
+        lda matrix_xx+1
+        ldy RDMPYL
+        sty z:ZPAD+2
         sta WRMPYA
-        lda a:matrixpointx+1,y
+        lda matrix_xy
+        sta WRMPYB
+        RW a16i8
+        lda z:ZPAD
+        add z:ZPAD+2
+        add RDMPYL
+        sta matrix_xx_xy
+        
+        RW a8i16
+        lda matrix_yx ;yx_yy = yx*yy
+        sta WRMPYA
+        lda matrix_yy
         sta WRMPYB
         nop
-        nop
-        nop
-        ldx RDMPYH
-        ; stx z:ZPAD
-        ; lda a:cube_x+1,y
-        ; sta WRMPYA
-        lda a:matrixpointx,y
+        lda matrix_yy+1
+        ldx RDMPYL
+        stx z:ZPAD
         sta WRMPYB
         nop
+        lda matrix_yx+1
+        ldy RDMPYL
+        sty z:ZPAD+2
+        sta WRMPYA
+        lda matrix_yy
+        sta WRMPYB
+        RW a16i8
+        lda z:ZPAD
+        add z:ZPAD+2
+        add RDMPYL
+        sta matrix_yx_yy
+        
+        RW a8i16
+        lda matrix_zx ;zx_zy = zx*zy
+        sta WRMPYA
+        lda matrix_zy
+        sta WRMPYB
         nop
+        lda matrix_zy+1
+        ldx RDMPYL
+        stx z:ZPAD
+        sta WRMPYB
+        nop
+        lda matrix_zx+1
+        ldx RDMPYL
+        sta WRMPYA
+        lda matrix_zy
+        sta WRMPYB
         RW a16i16
         txa
-        and #$ff00
-        add RDMPYL
         add z:ZPAD
-        sta a:matrixpointx,y
-@ypointrot:       
-        RW a8i16
-        stz z:invertpointy
-        lda a:cube_y+1,y ;8.8 fixed * int8
-        sta WRMPYA
-        lda a:matrixpointy+1,y
-        sta WRMPYB
-        nop
-        nop
-        nop
-        ldx RDMPYH
-        ; stx z:ZPAD
-        ; lda a:cube_y+1,y
-        ; sta WRMPYA
-        lda a:matrixpointy,y
-        sta WRMPYB
-        nop
-        nop
-        RW a16i16
-        ;lda z:ZPAD
-        txa
-        and #$ff00
         add RDMPYL
-        sta a:matrixpointy,y
-@zpointrot:
+        sta matrix_zx_zy
+        
+        ldy #0
+polyrotationloop:
+        ;rember pemdas:
+        ;
+        ;parentheses first
+        ;multiplication next
+        ;then both adding and subtracting together
+        ;
         RW a8i16
-        stz z:invertpointz
-        lda a:cube_z+1,y ;8.8 fixed * int8
+        lda a:cube_x,y ;but before all that, let's precalc x*y
         sta WRMPYA
-        lda a:matrixpointz+1,y
+        lda a:cube_y,y
         sta WRMPYB
         nop
-        nop
-        nop
-        ldx RDMPYH
-        ; stx z:ZPAD
-        ; lda a:cube_z+1,y
-        ; sta WRMPYA
-        lda a:matrixpointz,y
+        lda a:cube_y+1,y
+        ldx RDMPYL
+        stx z:ZPAD
         sta WRMPYB
         nop
-        nop
+        lda a:cube_x+1,y
+        ldx RDMPYL
+        stx z:ZPAD+2
+        sta WRMPYA
+        lda a:cube_y,y
+        sta WRMPYB
         RW a16i16
-        ;lda z:ZPAD
-        txa
-        and #$ff00
+        lda z:ZPAD
+        add z:ZPAD+2
         add RDMPYL
-        sta a:matrixpointz,y
-@donepointrot:
+        sta matrix_x_m_y ;not to be confused with matrix_xy
+
+; x'        
+        ;okay, now Please Excuse My Dear Aunt Sally
+        ;(xx + y)(xy + x) + z*xz - (xx_xy + x_y)
+        lda matrix_xx ;(xx + y)
+        add a:cube_y,y
+        sta z:ZPAD
+        lda matrix_xy ;(xy + x)
+        add a:cube_x,y
+        sta z:ZPAD+2
+        lda matrix_xx_xy ;(xx_xy + x_y)
+        add matrix_x_m_y
+        sta z:ZPAD+4
+        
+        RW a8i16
+        lda a:cube_z,y ;z*xz
+        sta WRMPYA
+        lda matrix_xz
+        sta WRMPYB
+        nop
+        lda a:cube_z+1,y
+        ldx RDMPYL
+        stx z:ZPAD+6
+        sta WRMPYB
+        nop
+        lda matrix_xz+1
+        ldx RDMPYL
+        sta WRMPYA
+        lda a:cube_z,y
+        sta WRMPYB
+        RW a16i16
+        txa
+        add z:ZPAD+6
+        add RDMPYL
+        sta matrix_z_xz
+        
+        RW a8i16
+        lda z:ZPAD ;(xx + y)(xy + x)
+        sta WRMPYA
+        lda z:ZPAD+2
+        sta WRMPYB
+        nop
+        lda z:ZPAD+1
+        ldx RDMPYL
+        stx z:ZPAD+6
+        sta WRMPYB
+        nop
+        lda z:ZPAD+3
+        ldx RDMPYL
+        sta WRMPYA
+        lda z:ZPAD
+        sta WRMPYB
+        RW a16i16
+        txa
+        add z:ZPAD+6
+        add RDMPYL
+        sta z:ZPAD+8
+        
+        lda z:ZPAD+8 ;(xx + y)(xy + x) + z*xz - (xx_xy + x_y)
+        add matrix_z_xz
+        sub z:ZPAD+4
+        sta matrix_pointx,y
+        
+; y'
+        ;(yx + y)(yy + x) + z*yz - (yx_yy + x_y)
+        lda matrix_yx ;(yx + y)
+        add a:cube_y,y
+        sta z:ZPAD
+        lda matrix_yy ;(yy + x)
+        add a:cube_x,y
+        sta z:ZPAD+2
+        lda matrix_yx_yy ;(yx_yy + x_y)
+        add matrix_x_m_y
+        sta z:ZPAD+4
+        
+        RW a8i16
+        lda a:cube_z,y ;z*yz
+        sta WRMPYA
+        lda matrix_yz
+        sta WRMPYB
+        nop
+        lda a:cube_z+1,y
+        ldx RDMPYL
+        stx z:ZPAD+6
+        sta WRMPYB
+        nop
+        lda matrix_yz+1
+        ldx RDMPYL
+        sta WRMPYA
+        lda a:cube_z,y
+        sta WRMPYB
+        RW a16i16
+        txa
+        add z:ZPAD+6
+        add RDMPYL
+        sta matrix_z_yz
+        
+        RW a8i16
+        lda z:ZPAD ;(yx + y)(yy + x)
+        sta WRMPYA
+        lda z:ZPAD+2
+        sta WRMPYB
+        nop
+        lda z:ZPAD+1
+        ldx RDMPYL
+        stx z:ZPAD+6
+        sta WRMPYB
+        nop
+        lda z:ZPAD+3
+        ldx RDMPYL
+        sta WRMPYA
+        lda z:ZPAD
+        sta WRMPYB
+        RW a16i16
+        txa
+        add z:ZPAD+6
+        add RDMPYL
+        sta z:ZPAD+8
+        
+        lda z:ZPAD+8 ;(yx + y)(yy + x) + z*yz - (yx_yy + x_y)
+        add matrix_z_yz
+        sub z:ZPAD+4
+        sta matrix_pointy,y
+        
+; z'
+        ;(zx + y)(zy + x) + z*zz - (zx_zy + x_y)
+        lda matrix_zx ;(zx + y)
+        add a:cube_y,y
+        sta z:ZPAD
+        lda matrix_zy ;(zy + x)
+        add a:cube_x,y
+        sta z:ZPAD+2
+        lda matrix_zx_zy ;(zx_zy + x_y)
+        add matrix_x_m_y
+        sta z:ZPAD+4
+        
+        RW a8i16
+        lda a:cube_z,y ;z*zz
+        sta WRMPYA
+        lda matrix_zz
+        sta WRMPYB
+        nop
+        lda a:cube_z+1,y
+        ldx RDMPYL
+        stx z:ZPAD+6
+        sta WRMPYB
+        nop
+        lda matrix_zz+1
+        ldx RDMPYL
+        sta WRMPYA
+        lda a:cube_z,y
+        sta WRMPYB
+        RW a16i16
+        txa
+        add z:ZPAD+6
+        add RDMPYL
+        sta matrix_z_zz
+        
+        RW a8i16
+        lda z:ZPAD ;(zx + y)(zy + x)
+        sta WRMPYA
+        lda z:ZPAD+2
+        sta WRMPYB
+        nop
+        lda z:ZPAD+1
+        ldx RDMPYL
+        stx z:ZPAD+6
+        sta WRMPYB
+        nop
+        lda z:ZPAD+3
+        ldx RDMPYL
+        sta WRMPYA
+        lda z:ZPAD
+        sta WRMPYB
+        RW a16i16
+        txa
+        add z:ZPAD+6
+        add RDMPYL
+        sta z:ZPAD+8
+        
+        lda z:ZPAD+8 ;(zx + y)(zy + x) + z*zz - (zx_zy + x_y)
+        add matrix_z_zz
+        sub z:ZPAD+4
+        sta matrix_pointz,y
+        
+donepolyrotation:
         iny
         iny
         cpy #16
         beq polyprojection
-        jmp pointrotationloop
+        jmp polyrotationloop
         
 polyprojection:
         RW a8i16
@@ -667,7 +635,7 @@ projectionloop:
         RW a16i16
         stz z:invertpointx
         ; get cube x points and divide by z
-        lda a:matrixpointx,y
+        lda a:matrix_pointx,y
         sub z:camx
         cmp #$8000
         bcc @notnegativex
@@ -675,7 +643,7 @@ projectionloop:
         neg
 @notnegativex:
         sta WRDIVL
-        lda a:matrixpointz,y
+        lda a:matrix_pointz,y
         sub z:camz
         xba
         RW a8i16
@@ -699,7 +667,7 @@ projectionloop:
 @ypointpro:
         ; get cube y points and divide by z
         stz z:invertpointy
-        lda a:matrixpointy,y
+        lda a:matrix_pointy,y
         sub z:camy
         cmp #$8000
         bcc @notnegativey
@@ -707,7 +675,7 @@ projectionloop:
         neg
 @notnegativey:
         sta WRDIVL
-        lda a:matrixpointz,y
+        lda a:matrix_pointz,y
         sub z:camz
         xba
         RW a8i16
@@ -808,9 +776,9 @@ VBL:
         lsr
         stz BG1VOFS
         sta BG1VOFS
-        ;inc z:matrixsx
-        inc z:matrixsy
-        ;inc z:matrixsz
+        ;inc z:matrix_sx
+        inc z:matrix_sy
+        ;inc z:matrix_sz
         bra donevblankinit
   middlevblankinit:
         VRAM_memcpy y, (pseudobitmap), 3584, 0, 0, $18       ;Transfer middle third of map to even VRAM addresses
@@ -909,9 +877,9 @@ camz: .res 2
 invertpointx: .res 2
 invertpointy: .res 2
 invertpointz: .res 2
-matrixsx: .res 1
-matrixsy: .res 1
-matrixsz: .res 1
+matrix_sx: .res 1
+matrix_sy: .res 1
+matrix_sz: .res 1
 
 .segment "LORAM"
 pointxword: .res 16
@@ -919,10 +887,27 @@ pointyword: .res 16
 oldpointxword: .res 16
 oldpointyword: .res 16
 
-matrixt: .res 10
+matrix_xx: .res 2
+matrix_xy: .res 2
+matrix_xz: .res 2
 
-matrixproduct: .res 18
+matrix_yx: .res 2
+matrix_yy: .res 2
+matrix_yz: .res 2
 
-matrixpointx: .res 16
-matrixpointy: .res 16
-matrixpointz: .res 16
+matrix_zx: .res 2
+matrix_zy: .res 2
+matrix_zz: .res 2
+
+matrix_xx_xy: .res 2
+matrix_yx_yy: .res 2
+matrix_zx_zy: .res 2
+
+matrix_x_m_y: .res 2
+matrix_z_xz: .res 2
+matrix_z_yz: .res 2
+matrix_z_zz: .res 2
+
+matrix_pointx: .res 16
+matrix_pointy: .res 16
+matrix_pointz: .res 16
