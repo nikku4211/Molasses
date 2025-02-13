@@ -582,15 +582,15 @@ pointrotationloop:
         nop
         ldx RDMPYL
         stx z:ZPAD
-:
         lda a:cube_x+1,y
+:
         sta WRMPYA
         lda a:matrixpointx+1,y
         sta WRMPYB
         nop
         nop
         nop
-        ldx RDMPYL
+        ldx RDMPYH
         ; stx z:ZPAD
         ; lda a:cube_x+1,y
         ; sta WRMPYA
@@ -600,7 +600,6 @@ pointrotationloop:
         nop
         RW a16i16
         txa
-        xba
         and #$ff00
         add RDMPYL
         add z:ZPAD
@@ -615,7 +614,7 @@ pointrotationloop:
         nop
         nop
         nop
-        ldx RDMPYL
+        ldx RDMPYH
         ; stx z:ZPAD
         ; lda a:cube_y+1,y
         ; sta WRMPYA
@@ -626,7 +625,6 @@ pointrotationloop:
         RW a16i16
         ;lda z:ZPAD
         txa
-        xba
         and #$ff00
         add RDMPYL
         sta a:matrixpointy,y
@@ -640,7 +638,7 @@ pointrotationloop:
         nop
         nop
         nop
-        ldx RDMPYL
+        ldx RDMPYH
         ; stx z:ZPAD
         ; lda a:cube_z+1,y
         ; sta WRMPYA
@@ -651,7 +649,6 @@ pointrotationloop:
         RW a16i16
         ;lda z:ZPAD
         txa
-        xba
         and #$ff00
         add RDMPYL
         sta a:matrixpointz,y
