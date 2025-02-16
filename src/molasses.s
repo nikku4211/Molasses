@@ -23,12 +23,133 @@ INIT_CAM_Y = 0 ;((4)<<8)
 INIT_CAM_Z = ((256 - 16)<<8)
 
 ;rotation amount per axis
-INIT_SX = 0
-INIT_SY = 0
-INIT_SZ = 0
+INIT_SX = 1
+INIT_SY = 1
+INIT_SZ = 1
 
 ;toggle music
 USE_AUDIO = 1
+
+; 8.8 by 8.8 fixed point multiplication
+; uses a8, x16, and y16
+; y16 is purely used to index points
+; 
+; a16 is where the result is stored
+; x16 is clobbered
+.macro mult_8p8y_8p8y prod1, prod2, freezpad
+        RW_forced a8i16
+        lda prod1,y
+        sta WRMPYA
+        lda prod2,y ;p1.l by p2.l
+        sta WRMPYB
+        nop
+        nop
+        nop
+        lda RDMPYH
+        sta z:ZPAD+freezpad
+        stz z:ZPAD+freezpad+1
+        lda prod2+1,y ;p1.l by p2.h
+        sta WRMPYB
+        nop
+        lda prod1+1,y
+        ldx RDMPYL
+        stx z:ZPAD+freezpad+2
+        sta WRMPYA
+        lda prod2,y ;p1.h by p2.l
+        sta WRMPYB
+        nop
+        lda prod2+1,y ;p1.h by p2.h
+        ldx RDMPYL
+        stx z:ZPAD+freezpad+4
+        sta WRMPYB
+        nop
+        nop
+        nop
+        RW a16i16
+        lda RDMPYL
+        xba
+        and #$ff00
+        add z:ZPAD+freezpad+4
+        add z:ZPAD+freezpad+2
+        add z:ZPAD
+.endmacro
+
+.macro mult_8p8y_8p8 prod1, prod2, freezpad
+        RW_forced a8i16
+        lda prod1,y
+        sta WRMPYA
+        lda prod2 ;p1.l by p2.l
+        sta WRMPYB
+        nop
+        nop
+        nop
+        lda RDMPYH
+        sta z:ZPAD+freezpad
+        stz z:ZPAD+freezpad+1
+        lda prod2+1 ;p1.l by p2.h
+        sta WRMPYB
+        nop
+        lda prod1+1,y
+        ldx RDMPYL
+        stx z:ZPAD+freezpad+2
+        sta WRMPYA
+        lda prod2 ;p1.h by p2.l
+        sta WRMPYB
+        nop
+        lda prod2+1 ;p1.h by p2.h
+        ldx RDMPYL
+        stx z:ZPAD+freezpad+4
+        sta WRMPYB
+        nop
+        nop
+        nop
+        RW a16i16
+        lda RDMPYL
+        xba
+        and #$ff00
+        add z:ZPAD+freezpad+4
+        add z:ZPAD+freezpad+2
+        add z:ZPAD
+.endmacro
+
+;no y is used in this version
+.macro mult_8p8_8p8 prod1, prod2, freezpad
+        RW_forced a8i16
+        lda prod1
+        sta WRMPYA
+        lda prod2 ;p1.l by p2.l
+        sta WRMPYB
+        nop
+        nop
+        nop
+        lda RDMPYH
+        sta z:ZPAD+freezpad
+        stz z:ZPAD+freezpad+1
+        lda prod2+1 ;p1.l by p2.h
+        sta WRMPYB
+        nop
+        lda prod1+1
+        ldx RDMPYL
+        stx z:ZPAD+freezpad+2
+        sta WRMPYA
+        lda prod2 ;p1.h by p2.l
+        sta WRMPYB
+        nop
+        lda prod2+1 ;p1.h by p2.h
+        ldx RDMPYL
+        stx z:ZPAD+freezpad+4
+        sta WRMPYB
+        nop
+        nop
+        nop
+        RW a16i16
+        lda RDMPYL
+        xba
+        and #$ff00
+        add z:ZPAD+freezpad+4
+        add z:ZPAD+freezpad+2
+        add z:ZPAD
+.endmacro
 
 Main:
         ;libSFX calls Main after CPU/PPU registers, memory and interrupt handlers are initialized.
@@ -154,7 +275,7 @@ Main:
         
 polyrotation:
 ; x-
-        RW a16i8
+        RW a8i8
         ldx z:matrix_sx     ;xx = [cos(A)cos(B)]
         ldy sinlut+32,x
         sty WRMPYA
@@ -164,8 +285,9 @@ polyrotation:
         nop
         nop
         nop
-        lda RDMPYL
+        lda RDMPYH
         sta matrix_xx
+        stz matrix_xx+1
         
         
         ;x has sy
@@ -177,13 +299,14 @@ polyrotation:
         nop
         nop
         nop
-        lda RDMPYL
+        lda RDMPYH
         sta matrix_xy
+        stz matrix_xy+1
         
         ldx z:matrix_sy      ;xz = [sin(B)]
         lda sinlut,x
-        and #$00ff
         sta matrix_xz
+        stz matrix_xz+1
         
 ; y-
         ldx z:matrix_sx
@@ -194,7 +317,7 @@ polyrotation:
         sty WRMPYB
         ldx z:matrix_sx
         nop
-        lda RDMPYL
+        lda RDMPYH
         sta z:ZPAD
         ldy sinlut+32,x
         sty WRMPYA
@@ -203,16 +326,17 @@ polyrotation:
         sty WRMPYB
         nop
         ldx z:matrix_sz
-        ldy RDMPYL
+        ldy RDMPYH
         sty WRMPYA
         ldy sinlut,x
         sty WRMPYB
         nop
         nop
         nop
-        lda RDMPYL
+        lda RDMPYH
         add z:ZPAD
         sta matrix_yx
+        stz matrix_yx+1
         
         ldx z:matrix_sx
         ldy sinlut+32,x
@@ -222,24 +346,26 @@ polyrotation:
         sty WRMPYB
         ldx z:matrix_sx
         nop
-        lda RDMPYL
+        lda RDMPYH
         sta z:ZPAD
         ldy sinlut,x
         sty WRMPYA
         ldx z:matrix_sy     ;+ sin(A)sin(B)sin(C)]
         ldy sinlut,x
         sty WRMPYB
+        nop
         ldx z:matrix_sz
-        ldy RDMPYL
+        ldy RDMPYH
         sty WRMPYA
         ldy sinlut,x
         sty WRMPYB
         nop
         nop
         nop
-        lda RDMPYL
+        lda RDMPYH
         sub z:ZPAD
         sta matrix_yy
+        stz matrix_yy+1
         
         ;x has sz
         ldy sinlut,x
@@ -250,9 +376,10 @@ polyrotation:
         nop
         nop
         nop
-        lda RDMPYL
+        lda RDMPYH
         neg
         sta matrix_yz
+        stz matrix_yz+1
         
 ; z-
         ldx z:matrix_sx
@@ -263,13 +390,13 @@ polyrotation:
         sty WRMPYB
         nop
         ldx z:matrix_sz
-        ldy RDMPYL
+        ldy RDMPYH
         sty WRMPYA
         ldy sinlut+32,x
         sty WRMPYB
         ldx z:matrix_sz
         nop
-        lda RDMPYL
+        lda RDMPYH
         sta z:ZPAD
         ldy sinlut,x
         sty WRMPYA
@@ -279,9 +406,10 @@ polyrotation:
         nop
         nop
         nop
-        lda RDMPYL
+        lda RDMPYH
         sub z:ZPAD
         sta matrix_zx
+        stz matrix_zx+1
         
         ldx z:matrix_sx
         ldy sinlut+32,x
@@ -291,7 +419,7 @@ polyrotation:
         sty WRMPYB
         ldx z:matrix_sx
         nop
-        lda RDMPYL
+        lda RDMPYH
         sta z:ZPAD
         ldy sinlut,x
         sty WRMPYA
@@ -300,17 +428,18 @@ polyrotation:
         sty WRMPYB
         nop
         ldx z:matrix_sx
-        ldy RDMPYL
+        ldy RDMPYH
         sty WRMPYA
         ldy sinlut+64,x
         sty WRMPYB
         nop
         nop
         nop
-        lda RDMPYL
+        lda RDMPYH
         neg
         sub z:ZPAD
         sta matrix_zy
+        stz matrix_zy+1
 
         ldx z:matrix_sy     ;zz = [cos(B)cos(C)]
         ldy sinlut+32,x
@@ -321,8 +450,9 @@ polyrotation:
         nop
         nop
         nop
-        lda RDMPYL
+        lda RDMPYH
         sta matrix_zz
+        stz matrix_zz+1
 
 ; ?x*?y
         RW a8i16
@@ -331,67 +461,30 @@ polyrotation:
         lda matrix_xy
         sta WRMPYB
         nop
-        lda matrix_xy+1
-        ldx RDMPYL
-        stx z:ZPAD
-        sta WRMPYB
         nop
-        lda matrix_xx+1
-        ldy RDMPYL
-        sty z:ZPAD+2
-        sta WRMPYA
-        lda matrix_xy
-        sta WRMPYB
-        RW a16i8
-        lda z:ZPAD
-        add z:ZPAD+2
-        add RDMPYL
-        sta matrix_xx_xy
+        nop
+        ldx RDMPYL
+        stx matrix_xx_xy
         
-        RW a8i16
         lda matrix_yx ;yx_yy = yx*yy
         sta WRMPYA
         lda matrix_yy
         sta WRMPYB
         nop
-        lda matrix_yy+1
-        ldx RDMPYL
-        stx z:ZPAD
-        sta WRMPYB
         nop
-        lda matrix_yx+1
-        ldy RDMPYL
-        sty z:ZPAD+2
-        sta WRMPYA
-        lda matrix_yy
-        sta WRMPYB
-        RW a16i8
-        lda z:ZPAD
-        add z:ZPAD+2
-        add RDMPYL
-        sta matrix_yx_yy
+        nop
+        ldx RDMPYL
+        stx matrix_yx_yy
         
-        RW a8i16
         lda matrix_zx ;zx_zy = zx*zy
         sta WRMPYA
         lda matrix_zy
         sta WRMPYB
         nop
-        lda matrix_zy+1
-        ldx RDMPYL
-        stx z:ZPAD
-        sta WRMPYB
         nop
-        lda matrix_zx+1
+        nop
         ldx RDMPYL
-        sta WRMPYA
-        lda matrix_zy
-        sta WRMPYB
-        RW a16i16
-        txa
-        add z:ZPAD
-        add RDMPYL
-        sta matrix_zx_zy
+        stx matrix_zx_zy
         
         ldy #0
 polyrotationloop:
@@ -401,30 +494,10 @@ polyrotationloop:
         ;multiplication next
         ;then both adding and subtracting together
         ;
-        RW_forced a8i16
-        lda a:cube_x,y ;but before all that, let's precalc x*y
-        sta WRMPYA
-        lda a:cube_y,y
-        sta WRMPYB
-        nop
-        lda a:cube_y+1,y
-        ldx RDMPYL
-        stx z:ZPAD
-        sta WRMPYB
-        nop
-        lda a:cube_x+1,y
-        ldx RDMPYL
-        stx z:ZPAD+2
-        sta WRMPYA
-        lda a:cube_y,y
-        sta WRMPYB
-        RW a16i16
-        lda z:ZPAD
-        add z:ZPAD+2
-        add RDMPYL
+        mult_8p8y_8p8y a:cube_x, a:cube_y, 0 ;but before all that, let's precalc x*y
         sta matrix_x_m_y ;not to be confused with matrix_xy
 
-; x'        
+; x'   
         ;okay, now Please Excuse My Dear Aunt Sally
         ;(xx + y)(xy + x) + z*xz - (xx_xy + x_y)
         lda matrix_xx ;(xx + y)
@@ -437,51 +510,13 @@ polyrotationloop:
         add matrix_x_m_y
         sta z:ZPAD+4
         
-        RW a8i16
-        lda a:cube_z,y ;z*xz
-        sta WRMPYA
-        lda matrix_xz
-        sta WRMPYB
-        nop
-        lda a:cube_z+1,y
-        ldx RDMPYL
-        stx z:ZPAD+6
-        sta WRMPYB
-        nop
-        lda matrix_xz+1
-        ldx RDMPYL
-        sta WRMPYA
-        lda a:cube_z,y
-        sta WRMPYB
-        RW a16i16
-        txa
-        add z:ZPAD+6
-        add RDMPYL
+        mult_8p8y_8p8 a:cube_z, matrix_xz, 6 ;z*xz
         sta matrix_z_xz
         
-        RW a8i16
-        lda z:ZPAD ;(xx + y)(xy + x)
-        sta WRMPYA
-        lda z:ZPAD+2
-        sta WRMPYB
-        nop
-        lda z:ZPAD+1
-        ldx RDMPYL
-        stx z:ZPAD+6
-        sta WRMPYB
-        nop
-        lda z:ZPAD+3
-        ldx RDMPYL
-        sta WRMPYA
-        lda z:ZPAD
-        sta WRMPYB
-        RW a16i16
-        txa
-        add z:ZPAD+6
-        add RDMPYL
-        sta z:ZPAD+8
+        mult_8p8_8p8 z:ZPAD, z:ZPAD+2, 6 ;(xx + y)(xy + x)
+        sta z:ZPAD+12
         
-        lda z:ZPAD+8 ;(xx + y)(xy + x) + z*xz - (xx_xy + x_y)
+        lda z:ZPAD+12 ;(xx + y)(xy + x) + z*xz - (xx_xy + x_y)
         add matrix_z_xz
         sub z:ZPAD+4
         sta matrix_pointx,y
@@ -498,51 +533,13 @@ polyrotationloop:
         add matrix_x_m_y
         sta z:ZPAD+4
         
-        RW a8i16
-        lda a:cube_z,y ;z*yz
-        sta WRMPYA
-        lda matrix_yz
-        sta WRMPYB
-        nop
-        lda a:cube_z+1,y
-        ldx RDMPYL
-        stx z:ZPAD+6
-        sta WRMPYB
-        nop
-        lda matrix_yz+1
-        ldx RDMPYL
-        sta WRMPYA
-        lda a:cube_z,y
-        sta WRMPYB
-        RW a16i16
-        txa
-        add z:ZPAD+6
-        add RDMPYL
+        mult_8p8y_8p8 a:cube_z, matrix_yz, 6  ;z*yz
         sta matrix_z_yz
         
-        RW a8i16
-        lda z:ZPAD ;(yx + y)(yy + x)
-        sta WRMPYA
-        lda z:ZPAD+2
-        sta WRMPYB
-        nop
-        lda z:ZPAD+1
-        ldx RDMPYL
-        stx z:ZPAD+6
-        sta WRMPYB
-        nop
-        lda z:ZPAD+3
-        ldx RDMPYL
-        sta WRMPYA
-        lda z:ZPAD
-        sta WRMPYB
-        RW a16i16
-        txa
-        add z:ZPAD+6
-        add RDMPYL
-        sta z:ZPAD+8
+        mult_8p8_8p8 z:ZPAD, z:ZPAD+2, 6 ;(yx + y)(yy + x)
+        sta z:ZPAD+12
         
-        lda z:ZPAD+8 ;(yx + y)(yy + x) + z*yz - (yx_yy + x_y)
+        lda z:ZPAD+12 ;(yx + y)(yy + x) + z*yz - (yx_yy + x_y)
         add matrix_z_yz
         sub z:ZPAD+4
         sta matrix_pointy,y
@@ -559,51 +556,13 @@ polyrotationloop:
         add matrix_x_m_y
         sta z:ZPAD+4
         
-        RW a8i16
-        lda a:cube_z,y ;z*zz
-        sta WRMPYA
-        lda matrix_zz
-        sta WRMPYB
-        nop
-        lda a:cube_z+1,y
-        ldx RDMPYL
-        stx z:ZPAD+6
-        sta WRMPYB
-        nop
-        lda matrix_zz+1
-        ldx RDMPYL
-        sta WRMPYA
-        lda a:cube_z,y
-        sta WRMPYB
-        RW a16i16
-        txa
-        add z:ZPAD+6
-        add RDMPYL
+        mult_8p8y_8p8 a:cube_z, matrix_zz, 6 ;z*zz
         sta matrix_z_zz
         
-        RW a8i16
-        lda z:ZPAD ;(zx + y)(zy + x)
-        sta WRMPYA
-        lda z:ZPAD+2
-        sta WRMPYB
-        nop
-        lda z:ZPAD+1
-        ldx RDMPYL
-        stx z:ZPAD+6
-        sta WRMPYB
-        nop
-        lda z:ZPAD+3
-        ldx RDMPYL
-        sta WRMPYA
-        lda z:ZPAD
-        sta WRMPYB
-        RW a16i16
-        txa
-        add z:ZPAD+6
-        add RDMPYL
-        sta z:ZPAD+8
+        mult_8p8_8p8 z:ZPAD, z:ZPAD+2, 6 ;(zx + y)(zy + x)
+        sta z:ZPAD+12
         
-        lda z:ZPAD+8 ;(zx + y)(zy + x) + z*zz - (zx_zy + x_y)
+        lda z:ZPAD+12 ;(zx + y)(zy + x) + z*zz - (zx_zy + x_y)
         add matrix_z_zz
         sub z:ZPAD+4
         sta matrix_pointz,y
@@ -765,7 +724,7 @@ VBL:
         stz BG1VOFS
         sta BG1VOFS
         ;inc z:matrix_sx
-        inc z:matrix_sy
+        ;inc z:matrix_sy
         ;inc z:matrix_sz
         bra donevblankinit
   middlevblankinit:
