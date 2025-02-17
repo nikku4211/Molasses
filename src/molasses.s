@@ -724,7 +724,7 @@ VBL:
         stz BG1VOFS
         sta BG1VOFS
         ;inc z:matrix_sx
-        ;inc z:matrix_sy
+        inc z:matrix_sy
         ;inc z:matrix_sz
         bra donevblankinit
   middlevblankinit:
