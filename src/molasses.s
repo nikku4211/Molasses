@@ -796,8 +796,8 @@ movebackward:
 incbin m7pbpalette,        "data/chunktestpalette.png.palette"
 incbin m7pbtiles,          "data/chunktestpalette.png.tiles"
 
-.segment "ROM1"
-incbin m7testpbm, "data/chunktest.png.pbm"
+;.segment "ROM1"
+;incbin m7testpbm, "data/chunktest.png.pbm"
 
 .segment "ROM2"
 .align $100

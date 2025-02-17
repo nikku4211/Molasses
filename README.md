@@ -4,6 +4,8 @@
 ## Dependencies
 - [LibSFX](https://github.com/Optiroc/libSFX)
 - [Python](https://www.python.org/)
+ - [Pillow](https://pypi.org/project/pillow/) is a requirement for `romusage.py`
+  - If you're on MSYS2, install `mingw-w64-python-pillow` and run the MinGW-W64 MSYS2 console.
 - [GCC](https://gcc.gnu.org/)
  - Binary builds for Windows x64 are provided, but if you use Linux and you don't feel like compiling the C code of the LUT generators, [Wine](https://www.winehq.org/) is recommended.
 - [SNESMOD](https://github.com/mukunda-/snesmod/tree/main/smconv)

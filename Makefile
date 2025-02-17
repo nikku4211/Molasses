@@ -17,13 +17,13 @@ SNESMOD := $(tools)/smconv.exe
 
 derived_files := $(sourcedir)/sinlut.i \
 	$(resdir)/chunktestpalette.png.tiles $(resdir)/chunktestpalette.png.palette \
-	$(resdir)/chunktest.png.pbm $(resdir)/game_music
+	$(resdir)/game_music
 
 $(resdir)/chunktestpalette.png.palette: palette_flags = -v --colors 256 -R
 $(resdir)/chunktestpalette.png.tiles: tiles_flags = -v -B 8 -M snes_mode7 -D -F -R -p $(resdir)/chunktestpalette.png.palette
 
-$(resdir)/chunktest.png.pbm: map_flags = -v -M snes_mode7 -p $(resdir)/chunktestpalette.png.palette \
-	-t $(resdir)/chunktestpalette.png.tiles
+#$(resdir)/chunktest.png.pbm: map_flags = -v -M snes_mode7 -p $(resdir)/chunktestpalette.png.palette \
+#	-t $(resdir)/chunktestpalette.png.tiles
 
 # Include libSFX.make
 libsfx_dir	:= ../libSFX
