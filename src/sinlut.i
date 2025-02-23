@@ -1,5 +1,5 @@
 ;
-; Sine lut; 288 entries, 7 fixeds
+; Sine lut; 320 entries, 7 fixeds
 ;
 
 .segment "ABS0DATA"
@@ -42,3 +42,7 @@ sinlut:
 .byte $18, $1C, $1F, $22, $25, $28, $2B, $2E
 .byte $30, $33, $36, $39, $3C, $3F, $41, $44
 .byte $47, $49, $4C, $4E, $51, $53, $55, $58
+.byte $5A, $5C, $5E, $60, $62, $64, $66, $68
+.byte $6A, $6C, $6D, $6F, $70, $72, $73, $75
+.byte $76, $77, $78, $79, $7A, $7B, $7C, $7C
+.byte $7D, $7E, $7E, $7F, $7F, $7F, $7F, $7F

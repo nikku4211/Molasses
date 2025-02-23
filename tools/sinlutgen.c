@@ -19,9 +19,9 @@ int main(int argc, char *argv[])
     unsigned char hw;
 
     fprintf(fp, ";\n; Sine lut; %d entries, %d fixeds\n;\n\n", 
-        SIN_SIZE+32, SIN_FP);
+        SIN_SIZE+64, SIN_FP);
     fprintf(fp, ".segment \"ABS0DATA\"\n.align $100\nsinlut:\n");
-    for(ii=0; ii<SIN_SIZE+32; ii++)
+    for(ii=0; ii<SIN_SIZE+64; ii++)
     {
         hw= (unsigned char)(sin(ii*2*M_PI/SIN_SIZE)*(1<<SIN_FP));
         if(ii%8 == 0)
