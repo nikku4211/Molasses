@@ -15,7 +15,7 @@ PY := python
 # If you use Linux, replace this with the Linux executeable.
 SNESMOD := $(tools)/smconv.exe
 
-derived_files := $(sourcedir)/sinlut.i \
+derived_files := $(sourcedir)/sinlut.i $(sourcedir)/idlut.i \
 	$(resdir)/chunktestpalette.png.tiles $(resdir)/chunktestpalette.png.palette \
 	$(resdir)/game_music
 
@@ -51,6 +51,12 @@ $(sourcedir)/divlut.i: $(tools)/divlutgen.exe
 	$< $@
 	
 $(tools)/divlutgen.exe: $(tools)/divlutgen.c
+	$(CC) -o $@ $<
+	
+$(sourcedir)/idlut.i: $(tools)/idlutgen.exe
+	$< $@
+	
+$(tools)/idlutgen.exe: $(tools)/idlutgen.c
 	$(CC) -o $@ $<
 	
 romused: $(rom)
