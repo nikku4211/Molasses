@@ -84,10 +84,10 @@ COSINE_OFFS = 32
 
 ; 8.8 by 8.8 fixed point multiplication
 ; 8.8 fixed point result
-; uses a8, x8, and x16
+; uses a8 and a16
 ; 
 ; a16 is where the result is stored
-; x16 is clobbered
+; x16 and y16 are free
 .macro mult_8p8_8p8 cand1, cand2, freezpad, cand1h, cand2h
         RW_forced a8i16
         
@@ -154,7 +154,7 @@ COSINE_OFFS = 32
         and #$ff00
         add z:ZPAD+freezpad+4
         adc z:ZPAD+freezpad+2
-        adc z:ZPAD
+        adc z:ZPAD+freezpad
 .endmacro
 
 ; s0.8 by s0.8 fixed point multiplication
@@ -183,6 +183,66 @@ COSINE_OFFS = 32
             sbc idlut,x
         : clc
           adc RDMPYH
+.endmacro
+
+; 8.8 by 0.8 fixed point multiplication
+; 8.8 fixed point result
+; uses a8 and a16
+; 
+; a16 is where the result is stored
+; index is free
+.macro mult_8p8_0p8_trig cand1, cand2, freezpad, cand2h
+        RW a8i8
+        
+        mult_0p8_0p8_stack {cand1}, {cand2}
+        sta z:ZPAD+freezpad
+        bmi :+  ;gotta sign extend
+        lda #$00
+        bra :++
+        : lda #$ff
+        : sta z:ZPAD+freezpad+1
+        
+        lda #0
+        pha
+        lda cand1
+        sta WRMPYA
+        cmp #$80
+        bcc :+
+          pla
+          sbc cand2h
+          pha
+      : lda cand2h ;p1.l by p2.h
+        sta WRMPYB
+        cmp #$80
+        bcc :+
+          pla
+          sbc cand1
+          pha
+      : pla
+        add RDMPYH
+        sta z:ZPAD+freezpad+3
+        lda RDMPYL
+        sta z:ZPAD+freezpad+2
+        
+        lda cand1
+        cmp #$80
+        bcc :+
+        lda #$ff
+        sta WRMPYA
+        lda cand2h ;p1.h by p2.h
+        sta WRMPYB
+        nop
+        nop
+        nop
+        RW a16i16
+        lda RDMPYL
+        xba
+        and #$ff00
+        bra :++
+      : RW_forced a16i16
+        lda #0
+      : add z:ZPAD+freezpad+2
+        adc z:ZPAD+freezpad
 .endmacro
 
 Main:
@@ -308,6 +368,98 @@ Main:
         sta z:matrix_sz
         
 polyrotation:
+        RW a16i16
+        ldy #0
+evenslowerpolyrotationloop:
+        lda a:cube_x,y ;cache the co-ordinates of the vertex
+        sta z:ZPAD
+        lda a:cube_y,y
+        sta z:ZPAD+2
+        lda a:cube_z,y
+        sta z:ZPAD+4
+        
+        phy ;keep the vertex number in the stack
+        
+        RW a8i8
+        ldx z:matrix_sx
+        mult_8p8_0p8_trig {sinlut+COSINE_OFFS,x}, z:ZPAD, 6, z:ZPAD+1 ;x'  = x*cos(A)
+        sta z:ZPAD+6
+        
+        RW a8i8
+        mult_8p8_0p8_trig {sinlut,x}, z:ZPAD+2, 8, z:ZPAD+3 ;+ y*sin(A)
+        sta z:ZPAD+8
+        
+        add z:ZPAD+6
+        sta z:ZPAD+10 ;x'
+        
+        RW a8i8
+        mult_8p8_0p8_trig {sinlut,x}, z:ZPAD, 6, z:ZPAD+1 ;y'  = x*sin(A)
+        sta z:ZPAD+6
+        
+        RW a8i8
+        mult_8p8_0p8_trig {sinlut+COSINE_OFFS,x}, z:ZPAD+2, 8, z:ZPAD+3 ;- y*cos(A)
+        sta z:ZPAD+8
+        
+        lda z:ZPAD+6
+        sub z:ZPAD+8
+        sta z:ZPAD+12 ;y'
+        
+        RW a8i8
+        ldx z:matrix_sy
+        mult_8p8_0p8_trig {sinlut+COSINE_OFFS,x}, z:ZPAD+10, 6, z:ZPAD+11 ;x''  = x'*cos(B)
+        sta z:ZPAD+6
+        
+        RW a8i8
+        mult_8p8_0p8_trig {sinlut,x}, z:ZPAD+4, 8, z:ZPAD+5 ;+ z*sin(B)
+        sta z:ZPAD+8
+        
+        add z:ZPAD+6
+        ply ;pull it out
+        sta matrix_pointx,y ;x''
+        phy ;push it again
+        
+        RW a8i8
+        mult_8p8_0p8_trig {sinlut,x}, z:ZPAD+10, 6, z:ZPAD+11 ;z'  = x'*sin(B)
+        sta z:ZPAD+6
+        
+        RW a8i8
+        mult_8p8_0p8_trig {sinlut+COSINE_OFFS,x}, z:ZPAD+4, 8, z:ZPAD+5 ;- z*cos(B)
+        sta z:ZPAD+8
+        
+        lda z:ZPAD+6
+        sub z:ZPAD+8
+        sta z:ZPAD+14 ;z'
+        
+        RW a8i8
+        ldx z:matrix_sz
+        mult_8p8_0p8_trig {sinlut+COSINE_OFFS,x}, z:ZPAD+12, 6, z:ZPAD+13 ;y''  = y'*cos(C)
+        sta z:ZPAD+6
+        
+        RW a8i8
+        mult_8p8_0p8_trig {sinlut,x}, z:ZPAD+14, 8, z:ZPAD+15 ;+ z'*sin(C)
+        sta z:ZPAD+8
+        
+        add z:ZPAD+6
+        ply ;pull it out
+        sta matrix_pointy,y ;y''
+        phy ;push it again
+        
+        RW a8i8
+        mult_8p8_0p8_trig {sinlut,x}, z:ZPAD+12, 6, z:ZPAD+13 ;z''  = y'*sin(C)
+        sta z:ZPAD+6
+        
+        RW a8i8
+        mult_8p8_0p8_trig {sinlut+COSINE_OFFS,x}, z:ZPAD+14, 8, z:ZPAD+15 ;- z'*cos(c)
+        sta z:ZPAD+8
+        
+        lda z:ZPAD+6
+        sub z:ZPAD+8
+        ply ;pull it out
+        sta matrix_pointz,y ;z''
+        
+        jmp donepolyrotation
+
+polyrotationsetup:
 ; x-
         mult_0p8_0p8_trig z:matrix_sx, z:matrix_sy, COSINE_OFFS, COSINE_OFFS ;xx = [cos(A)cos(B)]
         sta matrix_xx
@@ -596,7 +748,7 @@ donepolyrotation:
         iny
         cpy #16
         beq polyprojection
-        jmp slowpolyrotationloop
+        jmp evenslowerpolyrotationloop
         
 polyprojection:
         RW a8i16
