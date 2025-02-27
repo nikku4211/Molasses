@@ -414,6 +414,7 @@ evenslowerpolyrotationloop:
         sta z:ZPAD+8
         
         add z:ZPAD+6
+        adc z:ZPAD
         ply ;pull it out
         sta matrix_pointx,y ;x''
         phy ;push it again
@@ -440,6 +441,7 @@ evenslowerpolyrotationloop:
         sta z:ZPAD+8
         
         add z:ZPAD+6
+        adc z:ZPAD+2
         ply ;pull it out
         sta matrix_pointy,y ;y''
         phy ;push it again
@@ -454,6 +456,7 @@ evenslowerpolyrotationloop:
         
         lda z:ZPAD+6
         sub z:ZPAD+8
+        add z:ZPAD+4
         ply ;pull it out
         sta matrix_pointz,y ;z''
         
