@@ -151,7 +151,7 @@ COSINE_OFFS = 32
         RW a16i16
         lda RDMPYL
         xba
-        and #$ff00
+        and #$00ff
         add z:ZPAD+freezpad+4
         adc z:ZPAD+freezpad+2
         adc z:ZPAD+freezpad
@@ -237,7 +237,7 @@ COSINE_OFFS = 32
         RW a16i16
         lda RDMPYL
         xba
-        and #$ff00
+        and #$00ff
         bra :++
       : RW_forced a16i16
         lda #0
