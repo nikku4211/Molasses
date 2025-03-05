@@ -31,14 +31,14 @@ include $(libsfx_dir)/libSFX.make
 
 run_args := $(rom)
 
-itlisto = $(foreach dir,$(resdir),$(wildcard $(dir)/*.it))
+itlisto := $(foreach dir,$(resdir),$(wildcard $(dir)/*.it))
 
 # Alternate derived files filter
 $(filter %.pbm,$(derived_files)) : %.pbm : %
 	$(superfamiconv) map $(map_flags) --in-image $* --out-data $@
 	
 $(resdir)/game_music: $(itlisto)
-	$(SNESMOD) -v -s $< -h -o $@
+	$(SNESMOD) -v -s $(itlisto) -h -o $@
 
 # Replace .exe with whatever executable format your OS uses
 $(sourcedir)/sinlut.i: $(tools)/sinlutgen.exe
@@ -59,5 +59,7 @@ $(sourcedir)/idlut.i: $(tools)/idlutgen.exe
 $(tools)/idlutgen.exe: $(tools)/idlutgen.c
 	$(CC) -o $@ $<
 	
+.PHONY: romused
+
 romused: $(rom)
 	$(PY) $(tools)/romusage.py $<

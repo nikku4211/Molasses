@@ -31,7 +31,7 @@ INIT_SZ = 0
 ;toggle music
 USE_AUDIO = 1
 
-COSINE_OFFS = 32
+COSINE_OFFS = 64
 
 ; s0.8 by s0.8 fixed point multiplication
 ; s0.8 fixed point result
@@ -39,7 +39,7 @@ COSINE_OFFS = 32
 ; 
 ; x is clobbered
 ; product is stored into a
-.macro mult_0p8_0p8 cand1, cand2
+.macro mult_s0p8_s0p8 cand1, cand2
           
           RW a8i8 ;thanks Not Kieran F
           
@@ -60,7 +60,7 @@ COSINE_OFFS = 32
 .endmacro
 
 ;this version uses only a and the stack
-.macro mult_0p8_0p8_stack cand1, cand2
+.macro mult_s0p8_s0p8_stack cand1, cand2
         lda #0
         pha
         lda cand1   ;all i have left is the stack
@@ -91,24 +91,22 @@ COSINE_OFFS = 32
 .macro mult_8p8_8p8 cand1, cand2, freezpad, cand1h, cand2h
         RW_forced a8i16
         
-        mult_0p8_0p8_stack {cand1}, {cand2}
+        lda cand1 ;p1.l by p2.l
+        sta WRMPYA
+        lda cand2
+        sta WRMPYB
+        nop
+        nop
+        nop
+        lda RDMPYH
         sta z:ZPAD+freezpad
-        bmi :+  ;gotta sign extend
-        lda #$00
-        bra :++
-        : lda #$ff
-        : sta z:ZPAD+freezpad+1
+        stz z:ZPAD+freezpad+1
         
         lda #0
         pha
         lda cand1
         sta WRMPYA
-        cmp #$80
-        bcc :+
-          pla
-          sbc cand2h
-          pha
-      : lda cand2h ;p1.l by p2.h
+        lda cand2h ;p1.l by p2.h
         sta WRMPYB
         cmp #$80
         bcc :+
@@ -132,12 +130,10 @@ COSINE_OFFS = 32
           pha
       : lda cand2 ;p1.h by p2.l
         sta WRMPYB
-        cmp #$80
-        bcc :+
-          pla
-          sbc cand1h
-          pha
-      : pla
+        nop
+        nop
+        nop
+        pla
         add RDMPYH
         sta z:ZPAD+freezpad+5
         lda RDMPYL
@@ -150,8 +146,7 @@ COSINE_OFFS = 32
         nop
         RW a16i16
         lda RDMPYL
-        xba
-        and #$00ff
+        and #$ff00
         add z:ZPAD+freezpad+4
         adc z:ZPAD+freezpad+2
         adc z:ZPAD+freezpad
@@ -163,7 +158,7 @@ COSINE_OFFS = 32
 ; 
 ; x, and y are clobbered
 ; product is stored into a
-.macro mult_0p8_0p8_trig cand1, cand2, cos1, cos2
+.macro mult_s0p8_s0p8_trig cand1, cand2, cos1, cos2
           RW a8i8 ;thanks Not Kieran F
 
           ldx cand1
@@ -191,10 +186,10 @@ COSINE_OFFS = 32
 ; 
 ; a16 is where the result is stored
 ; index is free
-.macro mult_8p8_0p8_trig cand1, cand2, freezpad, cand2h
+.macro mult_8p8_s0p8_trig cand1, cand2, freezpad, cand2h
         RW a8i8
         
-        mult_0p8_0p8_stack {cand1}, {cand2}
+        mult_s0p8_s0p8_stack {cand1}, {cand2}
         sta z:ZPAD+freezpad
         bmi :+  ;gotta sign extend
         lda #$00
@@ -382,22 +377,22 @@ evenslowerpolyrotationloop:
         
         RW a8i8
         ldx z:matrix_sx
-        mult_8p8_0p8_trig {sinlut+COSINE_OFFS,x}, z:ZPAD, 6, z:ZPAD+1 ;x'  = x*cos(A)
+        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, z:ZPAD, 6, {sinluth+COSINE_OFFS,x}, z:ZPAD+1 ;x'  = x*cos(A)
         sta z:ZPAD+6
         
         RW a8i8
-        mult_8p8_0p8_trig {sinlut,x}, z:ZPAD+2, 8, z:ZPAD+3 ;+ y*sin(A)
+        mult_8p8_8p8 {sinlut,x}, z:ZPAD+2, 8, {sinluth,x}, z:ZPAD+3 ;+ y*sin(A)
         sta z:ZPAD+8
         
         add z:ZPAD+6
         sta z:ZPAD+10 ;x'
         
         RW a8i8
-        mult_8p8_0p8_trig {sinlut,x}, z:ZPAD, 6, z:ZPAD+1 ;y'  = x*sin(A)
+        mult_8p8_8p8 {sinlut,x}, z:ZPAD, 6, {sinluth,x}, z:ZPAD+1 ;y'  = x*sin(A)
         sta z:ZPAD+6
         
         RW a8i8
-        mult_8p8_0p8_trig {sinlut+COSINE_OFFS,x}, z:ZPAD+2, 8, z:ZPAD+3 ;- y*cos(A)
+        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, z:ZPAD+2, 8, {sinluth+COSINE_OFFS,x}, z:ZPAD+3 ;- y*cos(A)
         sta z:ZPAD+8
         
         lda z:ZPAD+6
@@ -406,11 +401,11 @@ evenslowerpolyrotationloop:
         
         RW a8i8
         ldx z:matrix_sy
-        mult_8p8_0p8_trig {sinlut+COSINE_OFFS,x}, z:ZPAD+10, 6, z:ZPAD+11 ;x''  = x'*cos(B)
+        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, z:ZPAD+10, 6, {sinluth+COSINE_OFFS,x}, z:ZPAD+11 ;x''  = x'*cos(B)
         sta z:ZPAD+6
         
         RW a8i8
-        mult_8p8_0p8_trig {sinlut,x}, z:ZPAD+4, 8, z:ZPAD+5 ;+ z*sin(B)
+        mult_8p8_8p8 {sinlut,x}, z:ZPAD+4, 8, {sinluth,x}, z:ZPAD+5 ;+ z*sin(B)
         sta z:ZPAD+8
         
         add z:ZPAD+6
@@ -420,11 +415,11 @@ evenslowerpolyrotationloop:
         phy ;push it again
         
         RW a8i8
-        mult_8p8_0p8_trig {sinlut,x}, z:ZPAD+10, 6, z:ZPAD+11 ;z'  = x'*sin(B)
+        mult_8p8_8p8 {sinlut,x}, z:ZPAD+10, 6, {sinluth,x}, z:ZPAD+11 ;z'  = x'*sin(B)
         sta z:ZPAD+6
         
         RW a8i8
-        mult_8p8_0p8_trig {sinlut+COSINE_OFFS,x}, z:ZPAD+4, 8, z:ZPAD+5 ;- z*cos(B)
+        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, z:ZPAD+4, 8, {sinluth+COSINE_OFFS,x}, z:ZPAD+5 ;- z*cos(B)
         sta z:ZPAD+8
         
         lda z:ZPAD+6
@@ -433,11 +428,11 @@ evenslowerpolyrotationloop:
         
         RW a8i8
         ldx z:matrix_sz
-        mult_8p8_0p8_trig {sinlut+COSINE_OFFS,x}, z:ZPAD+12, 6, z:ZPAD+13 ;y''  = y'*cos(C)
+        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, z:ZPAD+12, 6, {sinluth+COSINE_OFFS,x}, z:ZPAD+13 ;y''  = y'*cos(C)
         sta z:ZPAD+6
         
         RW a8i8
-        mult_8p8_0p8_trig {sinlut,x}, z:ZPAD+14, 8, z:ZPAD+15 ;+ z'*sin(C)
+        mult_8p8_8p8 {sinlut,x}, z:ZPAD+14, 8, {sinluth,x}, z:ZPAD+15 ;+ z'*sin(C)
         sta z:ZPAD+8
         
         add z:ZPAD+6
@@ -447,11 +442,11 @@ evenslowerpolyrotationloop:
         phy ;push it again
         
         RW a8i8
-        mult_8p8_0p8_trig {sinlut,x}, z:ZPAD+12, 6, z:ZPAD+13 ;z''  = y'*sin(C)
+        mult_8p8_8p8 {sinlut,x}, z:ZPAD+12, 6, {sinluth,x}, z:ZPAD+13 ;z''  = y'*sin(C)
         sta z:ZPAD+6
         
         RW a8i8
-        mult_8p8_0p8_trig {sinlut+COSINE_OFFS,x}, z:ZPAD+14, 8, z:ZPAD+15 ;- z'*cos(c)
+        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, z:ZPAD+14, 8, {sinluth+COSINE_OFFS,x}, z:ZPAD+15 ;- z'*cos(C)
         sta z:ZPAD+8
         
         lda z:ZPAD+6
@@ -464,7 +459,7 @@ evenslowerpolyrotationloop:
 
 polyrotationsetup:
 ; x-
-        mult_0p8_0p8_trig z:matrix_sx, z:matrix_sy, COSINE_OFFS, COSINE_OFFS ;xx = [cos(A)cos(B)]
+        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sy, COSINE_OFFS, COSINE_OFFS ;xx = [cos(A)cos(B)]
         sta matrix_xx
         bpl :+ ;gotta sign extend
         lda #$ff
@@ -472,7 +467,7 @@ polyrotationsetup:
       : lda #0
       : sta matrix_xx+1
       
-        mult_0p8_0p8_trig z:matrix_sx, z:matrix_sy, 0, COSINE_OFFS ;xy = [sin(A)cos(B)]
+        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sy, 0, COSINE_OFFS ;xy = [sin(A)cos(B)]
         sta matrix_xy
         bpl :+ ;gotta sign extend
         lda #$ff
@@ -490,10 +485,10 @@ polyrotationsetup:
       : sta matrix_xz+1
         
 ; y-
-        mult_0p8_0p8_trig z:matrix_sx, z:matrix_sz, 0, COSINE_OFFS     ;yx = [sin(A)cos(C)
+        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sz, 0, COSINE_OFFS     ;yx = [sin(A)cos(C)
         sta z:ZPAD
       
-        mult_0p8_0p8_trig z:matrix_sx, z:matrix_sy, COSINE_OFFS, 0     ;+ cos(A)sin(B)sin(C)]
+        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sy, COSINE_OFFS, 0     ;+ cos(A)sin(B)sin(C)]
         ldx z:matrix_sz
         sta WRMPYA
         ldy sinlut,x
@@ -510,10 +505,10 @@ polyrotationsetup:
       : lda #0
       : sta matrix_yx+1
       
-        mult_0p8_0p8_trig z:matrix_sx, z:matrix_sz, COSINE_OFFS, COSINE_OFFS     ;yy = [-cos(A)cos(C)
+        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sz, COSINE_OFFS, COSINE_OFFS     ;yy = [-cos(A)cos(C)
         sta z:ZPAD
       
-        mult_0p8_0p8_trig z:matrix_sx, z:matrix_sy, 0, 0     ;+ sin(A)sin(B)sin(C)]
+        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sy, 0, 0     ;+ sin(A)sin(B)sin(C)]
         ldx z:matrix_sz
         sta WRMPYA
         ldy sinlut,x
@@ -530,7 +525,7 @@ polyrotationsetup:
       : lda #0
       : sta matrix_yy+1
         
-        mult_0p8_0p8_trig z:matrix_sy, z:matrix_sz, COSINE_OFFS, 0     ;yz = [-cos(B)sin(C)]
+        mult_s0p8_s0p8_trig z:matrix_sy, z:matrix_sz, COSINE_OFFS, 0     ;yz = [-cos(B)sin(C)]
         neg
         sta matrix_yz
         bpl :+ ;gotta sign extend
@@ -541,10 +536,10 @@ polyrotationsetup:
         
 ; z-
 
-        mult_0p8_0p8_trig z:matrix_sx, z:matrix_sz, 0, 0     ;zx = [sin(A)sin(C)
+        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sz, 0, 0     ;zx = [sin(A)sin(C)
         sta z:ZPAD
       
-        mult_0p8_0p8_trig z:matrix_sx, z:matrix_sy, COSINE_OFFS, 0     ;- cos(A)sin(B)cos(C)]
+        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sy, COSINE_OFFS, 0     ;- cos(A)sin(B)cos(C)]
         ldx z:matrix_sz
         sta WRMPYA
         ldy sinlut+COSINE_OFFS,x
@@ -562,10 +557,10 @@ polyrotationsetup:
       : lda #0
       : sta matrix_zx+1
       
-        mult_0p8_0p8_trig z:matrix_sx, z:matrix_sz, COSINE_OFFS, 0     ;zy = [-cos(A)sin(C)
+        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sz, COSINE_OFFS, 0     ;zy = [-cos(A)sin(C)
         sta z:ZPAD
       
-        mult_0p8_0p8_trig z:matrix_sx, z:matrix_sy, 0, 0     ;- sin(A)sin(B)cos(C)]
+        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sy, 0, 0     ;- sin(A)sin(B)cos(C)]
         ldx z:matrix_sz
         sta WRMPYA
         ldy sinlut+COSINE_OFFS,x
@@ -583,7 +578,7 @@ polyrotationsetup:
       : lda #0
       : sta matrix_zy+1
         
-        mult_0p8_0p8_trig z:matrix_sy, z:matrix_sz, COSINE_OFFS, COSINE_OFFS     ;zz = [cos(B)cos(C)]
+        mult_s0p8_s0p8_trig z:matrix_sy, z:matrix_sz, COSINE_OFFS, COSINE_OFFS     ;zz = [cos(B)cos(C)]
         sta matrix_zz
         bpl :+ ;gotta sign extend
         lda #$ff

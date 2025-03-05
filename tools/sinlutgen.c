@@ -4,7 +4,7 @@
 
 #define M_PI 3.1415926535f
 #define SIN_SIZE 256
-#define SIN_FP 7
+#define SIN_FP 8
 
 int main(int argc, char *argv[])
 {
@@ -23,7 +23,19 @@ int main(int argc, char *argv[])
     fprintf(fp, ".segment \"ABS0DATA\"\n.align $100\nsinlut:\n");
     for(ii=0; ii<SIN_SIZE+64; ii++)
     {
-        hw= (unsigned char)(sin(ii*2*M_PI/SIN_SIZE)*(1<<SIN_FP));
+        hw= (char)(sin(ii*2*M_PI/SIN_SIZE)*(1<<SIN_FP));
+        if(ii%8 == 0)
+            fputs("\n.byte ", fp);
+				if (ii%8 == 7)
+					fprintf(fp, "$%02X", hw);
+				else
+					fprintf(fp, "$%02X, ", hw);
+    }
+    
+    fprintf(fp, "\n\n.align $100\nsinluth:\n");
+    for(ii=0; ii<SIN_SIZE+64; ii++)
+    {
+        hw= (short)(sin(ii*2*M_PI/SIN_SIZE)*(1<<SIN_FP)) >> SIN_FP;
         if(ii%8 == 0)
             fputs("\n.byte ", fp);
 				if (ii%8 == 7)

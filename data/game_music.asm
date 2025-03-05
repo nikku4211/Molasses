@@ -1,6 +1,6 @@
 ;************************************************
 ; snesmod soundbank data                        *
-; total size:      18734 bytes                  *
+; total size:      41220 bytes                  *
 ;************************************************
 
 	.global __SOUNDBANK__

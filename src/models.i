@@ -2,17 +2,17 @@
 .align 256
 cube_x:
 ; point x values
-.word $0200,$0200,$0400,$0400
-.word $0200,$0400,$0400,$0200
+.word $fc00,$fc00,$0400,$0400
+.word $fc00,$0400,$0400,$fc00
 
 cube_y:
 ; point y values
-.word $0200,$0400,$0200,$0400
-.word $0400,$0200,$0400,$0200
+.word $fc00,$0400,$fc00,$0400
+.word $0400,$fc00,$0400,$fc00
 
 cube_z:
 ; point z values
-.word $0200,$0200,$0200,$0200
+.word $fc00,$fc00,$fc00,$fc00
 .word $0400,$0400,$0400,$0400
 
 cube_edge1:
