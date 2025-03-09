@@ -29,9 +29,9 @@ INIT_SY = 0
 INIT_SZ = 0
 
 ;toggle music
-USE_AUDIO = 1
+USE_AUDIO = 0
 
-COSINE_OFFS = 64
+COSINE_OFFS = 32
 
 ; s0.8 by s0.8 fixed point multiplication
 ; s0.8 fixed point result
@@ -100,7 +100,11 @@ COSINE_OFFS = 64
         nop
         lda RDMPYH
         sta z:ZPAD+freezpad
-        stz z:ZPAD+freezpad+1
+        bpl :+
+        lda #$ff
+        bra :++
+      : lda #0
+      : sta z:ZPAD+freezpad+1
         
         lda #0
         pha
@@ -146,6 +150,7 @@ COSINE_OFFS = 64
         nop
         RW a16i16
         lda RDMPYL
+        xba
         and #$ff00
         add z:ZPAD+freezpad+4
         adc z:ZPAD+freezpad+2
@@ -241,6 +246,7 @@ COSINE_OFFS = 64
 .endmacro
 
 Main:
+
         ;libSFX calls Main after CPU/PPU registers, memory and interrupt handlers are initialized.
         ;load a program to the s-apu and run it
         .if ::USE_AUDIO
@@ -252,7 +258,7 @@ Main:
           jsr spcSetBank
           
           ;x = module_id
-          ldx #0
+          ldx #1
           jsr spcLoad ; load the module
 
           ;a = bank #
@@ -274,6 +280,20 @@ Main:
         ;Set color 0
         CGRAM_memcpy 0, m7pbpalette, sizeof_m7pbpalette
         WRAM_memset pseudobitmap, 16384, $00
+        
+multunittest:
+        RW a8i8
+        lda #$f0
+        sta z:ZPAD
+        lda #$f0
+        stz z:ZPAD+1
+        lda #$10
+        sta z:ZPAD+2
+        sta z:ZPAD+3
+        mult_8p8_8p8 z:ZPAD, z:ZPAD+2, 4, z:ZPAD+1, z:ZPAD+3
+        sta z:ZPAD+4
+        sta $7feeee
+okaygo:
         
         RW a8i16
         
