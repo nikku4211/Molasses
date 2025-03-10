@@ -5,8 +5,7 @@
 
 .import __SOUNDBANK__
 
-MOD_TETASAN                      = 0
-MOD_WAAF                         = 1
+MOD_IJTOTLOMD                    = 0
 
 
 .endif ; __SOUNDBANK_DEFINITIONS__

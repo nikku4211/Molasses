@@ -29,7 +29,7 @@ INIT_SY = 0
 INIT_SZ = 0
 
 ;toggle music
-USE_AUDIO = 0
+USE_AUDIO = 1
 
 COSINE_OFFS = 64
 
@@ -245,6 +245,97 @@ COSINE_OFFS = 64
         adc z:ZPAD+freezpad
 .endmacro
 
+.macro hamline x0, y0, x1, y1, col, freezpad
+.scope
+        RW_forced a8i16
+        lda x0 ;x0
+        sta z:ZPAD+freezpad
+        stz z:ZPAD+freezpad+1
+        lda x1 ;x1
+        sta z:ZPAD+freezpad+2
+        stz z:ZPAD+freezpad+3
+        lda y0 ;y0
+        sta z:ZPAD+freezpad+4
+        lda y1 ;y1
+        sta Z:ZPAD+freezpad+5
+        
+        lda z:ZPAD+freezpad+2
+        sub z:ZPAD+freezpad
+        bpl :+
+        neg
+      : sta ham_dx ;dx = abs(x1 - x0)
+      
+        lda z:ZPAD+freezpad+5
+        sub z:ZPAD+freezpad+4
+        bpl :+
+        neg
+      : neg
+        sta ham_dy ;dy = -abs(y1 - y0)
+        
+        lda z:ZPAD+freezpad ; sx = x0 < x1 ? 1 : -1
+        cmp z:ZPAD+freezpad+2
+        bcs :+
+        lda #1
+        bra :++
+      : lda #$ff
+      : sta ham_sx
+      
+        lda z:ZPAD+freezpad+4 ; sy = y0 < y1 ? 1 : -1
+        cmp z:ZPAD+freezpad+5
+        bcs :+
+        lda #1
+        bra :++
+      : lda #$ff
+      : sta ham_sy
+      
+        lda ham_dx
+        add ham_dy
+        sta ham_lerror ; error = dx + dy
+whileloop:
+        RW a16i16
+        lda z:ZPAD+freezpad+3
+        and #$ff00
+        lsr
+        ora z:ZPAD
+        tax
+        RW a8
+        lda col
+        sta f:pseudobitmap,x ; plot(x0, y0)
+        
+        lda ham_lerror
+        asl
+        sta ham_le2 ; e2 = error * 2
+        
+        cmp ham_dy ;if e2 >= dy
+        bcs :+
+        lda z:ZPAD+freezpad ;if x0 == x1 break
+        cmp z:ZPAD+freezpad+2
+        beq nomoreloop
+        lda ham_lerror
+        add ham_dy
+        sta ham_lerror ;error += dy
+        lda z:ZPAD+freezpad
+        add ham_sx
+        sta z:ZPAD+freezpad ;x0 += sx
+        lda ham_le2
+      : cmp ham_dx ;if e2 <= dx
+        beq :+
+        bcc :++
+      : lda z:ZPAD+freezpad+4 ;if y0 == y1 break
+        cmp z:ZPAD+freezpad+5
+        beq nomoreloop
+        lda ham_lerror
+        add ham_dx
+        sta ham_lerror ;error += dx
+        lda z:ZPAD+freezpad+4
+        add ham_sy
+        sta z:ZPAD+freezpad+4 ;y0 += sy
+:
+        bra whileloop
+nomoreloop:
+.endscope
+.endmacro
+
 Main:
 
         ;libSFX calls Main after CPU/PPU registers, memory and interrupt handlers are initialized.
@@ -258,7 +349,7 @@ Main:
           jsr spcSetBank
           
           ;x = module_id
-          ldx #1
+          ldx #0
           jsr spcLoad ; load the module
 
           ;a = bank #
@@ -660,88 +751,57 @@ projectionloop:
         iny
         iny
         cpy #16
-        beq threeddone
+        beq drawedge
         jmp projectionloop
+
+        
+drawedge:
+        RW i16
+        ldy #0
+
+edgeloop:
+        RW_forced a16i16
+        lda a:cube_edge1,y ;erase old line first
+        and #$00ff
+        asl
+        tax
+        lda a:oldpointxword,x
+        sta z:ZPAD
+        lda a:oldpointyword,x
+        sta z:ZPAD+2
+        
+        lda a:cube_edge2,y
+        and #$00ff
+        asl
+        tax
+        hamline z:ZPAD, z:ZPAD+2, {a:oldpointxword,x}, {a:oldpointyword,x}, #$00, 4
+
+        RW_forced a16i16
+        lda a:cube_edge1,y
+        and #$00ff
+        asl
+        tax
+        lda a:pointxword,x
+        sta z:ZPAD
+        lda a:pointyword,x
+        sta z:ZPAD+2
+        
+        lda a:cube_edge2,y
+        and #$00ff
+        asl
+        tax
+        hamline z:ZPAD, z:ZPAD+2, {a:pointxword,x}, {a:pointyword,x}, #$20, 4
+                
+@nextloop:
+        iny
+        cpy #12
+        beq threeddone
+        jmp edgeloop
+
 threeddone:
         lda #1
         sta z:threeddoneflag
         
-hamline:
-        RW a8i8
-        lda #$10 ;x0
-        sta z:ZPAD
-        lda #$40 ;x1
-        sta z:ZPAD+1
-        lda #$20 ;y0
-        sta z:ZPAD+2
-        lda #$30 ;y1
-        sta Z:ZPAD+3
-        
-        lda z:ZPAD+1
-        sub z:ZPAD
-        sta ham_dx ;x1 - x0
-        
-        lda z:ZPAD+3
-        sub z:ZPAD+2
-        sta ham_dy ;y1 - y0
-        
-        lda #1
-        sta ham_xi
-        
-        lda ham_dx
-        bpl :+ ;if dx is < 0
-        lda #$ff
-        sta ham_xi
-        lda ham_dx
-        neg
-      : asl
-        sub ham_dy
-        sta ham_dee ;D = 2*dx - dy
-        
-        lda z:ZPAD
-        sta ham_x ;x = x0
-        
-        ldy ham_dy
-        lda z:ZPAD+2
-        sta ham_y
-        stz ham_y+1
-hamlineloop:
-        phy
-        RW a16i16
-        lda ham_y
-        xba
-        lsr
-        ora ham_x
-        tax
-        RW a8
-        lda #$20
-        sta f:pseudobitmap,x ;plot (x, y)
-        
-        RW i8
-        lda ham_dy
-        asl
-        sta z:ZPAD+4 ;2*dy
-        
-        lda ham_dx
-        asl
-        sta z:ZPAD+5 ;2*dx
-        
-        lda ham_dee
-        bmi :+ ;if D > 0
-        lda ham_x
-        add ham_xi
-        sta ham_x ;x += xi
-        lda ham_dee
-        sub z:ZPAD+4 ;D -= 2*(dy - dx)
-        sub z:ZPAD+5
-        bra :++
-      : lda ham_dee ;D += 2*dx
-        add z:ZPAD+5
-        
-      : ply
-        inc ham_y
-        dey
-        bne hamlineloop
         RW a8i16
 forever:
         wai
@@ -922,4 +982,9 @@ ham_dx: .res 1
 ham_dy: .res 1
 ham_y: .res 2
 ham_x: .res 2
-ham_xi: .res 1
+ham_sx: .res 1
+ham_sy: .res 1
+ham_lerror: .res 1
+ham_le2: .res 1
+
+matrix_edge: .res 12
