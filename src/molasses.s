@@ -468,44 +468,6 @@ polyrotationsetup:
         
         RW i16
         ldy #0
-slowpolyrotationloop:
-;x''
-        mult_8p8_8p8 {a:cube_x,y}, matrix_xx, 0, {a:cube_x+1,y}, matrix_xx+1
-        sta z:ZPAD
-        mult_8p8_8p8 {a:cube_y,y}, matrix_xy, 2, {a:cube_y+1,y}, matrix_xy+1
-        sta z:ZPAD+2
-        mult_8p8_8p8 {a:cube_z,y}, matrix_xz, 4, {a:cube_z+1,y}, matrix_xz+1
-        
-        add z:ZPAD+2
-        add z:ZPAD
-        ;add a:cube_x,y
-        sta matrix_pointx,y
-        
-;y''
-        mult_8p8_8p8 {a:cube_x,y}, matrix_yx, 0, {a:cube_x+1,y}, matrix_yx+1
-        sta z:ZPAD
-        mult_8p8_8p8 {a:cube_y,y}, matrix_yy, 2, {a:cube_y+1,y}, matrix_yy+1
-        sta z:ZPAD+2
-        mult_8p8_8p8 {a:cube_z,y}, matrix_yz, 4, {a:cube_z+1,y}, matrix_yz+1
-        
-        add z:ZPAD+2
-        add z:ZPAD
-        ;add a:cube_y,y
-        sta matrix_pointy,y
-
-;z''
-        mult_8p8_8p8 {a:cube_x,y}, matrix_zx, 0, {a:cube_x+1,y}, matrix_zx+1
-        sta z:ZPAD
-        mult_8p8_8p8 {a:cube_y,y}, matrix_zy, 2, {a:cube_y+1,y}, matrix_zy+1
-        sta z:ZPAD+2
-        mult_8p8_8p8 {a:cube_z,y}, matrix_zz, 4, {a:cube_z+1,y}, matrix_zz+1
-        
-        add z:ZPAD+2
-        add z:ZPAD
-        ;add a:cube_z,y
-        sta matrix_pointz,y
-        
-        jmp donepolyrotation
 uopolyrotationloop:
         ;rember pemdas:
         ;
@@ -591,7 +553,7 @@ donepolyrotation:
         iny
         cpy #16
         beq polyprojection
-        jmp slowpolyrotationloop
+        jmp uopolyrotationloop
         
 polyprojection:
         RW a8i16
@@ -743,8 +705,8 @@ VBL:
         stz BG1VOFS
         sta BG1VOFS
         ;inc z:matrix_sx
-        inc z:matrix_sy
-        ;inc z:matrix_sz
+        ;inc z:matrix_sy
+        inc z:matrix_sz
         bra donevblankinit
   middlevblankinit:
         VRAM_memcpy y, (pseudobitmap), 3584, 0, 0, $18       ;Transfer middle third of map to even VRAM addresses
