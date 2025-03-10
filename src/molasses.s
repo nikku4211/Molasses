@@ -31,7 +31,7 @@ INIT_SZ = 0
 ;toggle music
 USE_AUDIO = 0
 
-COSINE_OFFS = 32
+COSINE_OFFS = 64
 
 ; s0.8 by s0.8 fixed point multiplication
 ; s0.8 fixed point result
@@ -281,17 +281,24 @@ Main:
         CGRAM_memcpy 0, m7pbpalette, sizeof_m7pbpalette
         WRAM_memset pseudobitmap, 16384, $00
         
-multunittest:
+trigunittest:
         RW a8i8
-        lda #$f0
-        sta z:ZPAD
-        lda #$f0
-        stz z:ZPAD+1
-        lda #$10
+        lda #$81
+        pha
+        plb
+        
+        ldx #$10
+        stx z:ZPAD
+        
+        lda sinlut,x
+        sta z:ZPAD+1
+        lda sinluth,x
         sta z:ZPAD+2
+        lda sinlut+COSINE_OFFS,x
         sta z:ZPAD+3
-        mult_8p8_8p8 z:ZPAD, z:ZPAD+2, 4, z:ZPAD+1, z:ZPAD+3
+        lda sinluth+COSINE_OFFS,x
         sta z:ZPAD+4
+        
         sta $7feeee
 okaygo:
         
@@ -371,10 +378,7 @@ okaygo:
         ldx #INIT_CAM_Z
         stx z:camz
 :       
-        lda #$81
-        pha
-        plb
-
+        
         lda #INIT_SX ;initialise rotations
         sta z:matrix_sx
         lda #INIT_SY
