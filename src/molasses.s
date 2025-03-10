@@ -666,6 +666,83 @@ threeddone:
         lda #1
         sta z:threeddoneflag
         
+hamline:
+        RW a8i8
+        lda #$10 ;x0
+        sta z:ZPAD
+        lda #$40 ;x1
+        sta z:ZPAD+1
+        lda #$20 ;y0
+        sta z:ZPAD+2
+        lda #$30 ;y1
+        sta Z:ZPAD+3
+        
+        lda z:ZPAD+1
+        sub z:ZPAD
+        sta ham_dx ;x1 - x0
+        
+        lda z:ZPAD+3
+        sub z:ZPAD+2
+        sta ham_dy ;y1 - y0
+        
+        lda #1
+        sta ham_xi
+        
+        lda ham_dx
+        bpl :+ ;if dx is < 0
+        lda #$ff
+        sta ham_xi
+        lda ham_dx
+        neg
+      : asl
+        sub ham_dy
+        sta ham_dee ;D = 2*dx - dy
+        
+        lda z:ZPAD
+        sta ham_x ;x = x0
+        
+        ldy ham_dy
+        lda z:ZPAD+2
+        sta ham_y
+        stz ham_y+1
+hamlineloop:
+        phy
+        RW a16i16
+        lda ham_y
+        xba
+        lsr
+        ora ham_x
+        tax
+        RW a8
+        lda #$20
+        sta f:pseudobitmap,x ;plot (x, y)
+        
+        RW i8
+        lda ham_dy
+        asl
+        sta z:ZPAD+4 ;2*dy
+        
+        lda ham_dx
+        asl
+        sta z:ZPAD+5 ;2*dx
+        
+        lda ham_dee
+        bmi :+ ;if D > 0
+        lda ham_x
+        add ham_xi
+        sta ham_x ;x += xi
+        lda ham_dee
+        sub z:ZPAD+4 ;D -= 2*(dy - dx)
+        sub z:ZPAD+5
+        bra :++
+      : lda ham_dee ;D += 2*dx
+        add z:ZPAD+5
+        
+      : ply
+        inc ham_y
+        dey
+        bne hamlineloop
+        RW a8i16
 forever:
         wai
         lda z:threeddoneflag
@@ -839,3 +916,10 @@ matrix_z_zz: .res 2
 matrix_pointx: .res 16
 matrix_pointy: .res 16
 matrix_pointz: .res 16
+
+ham_dee: .res 1
+ham_dx: .res 1
+ham_dy: .res 1
+ham_y: .res 2
+ham_x: .res 2
+ham_xi: .res 1
