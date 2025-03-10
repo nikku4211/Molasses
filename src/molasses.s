@@ -89,7 +89,7 @@ COSINE_OFFS = 64
 ; a16 is where the result is stored
 ; x16 and y16 are free
 .macro mult_8p8_8p8 cand1, cand2, freezpad, cand1h, cand2h
-        RW_forced a8i16
+        RW a8
         
         lda cand1 ;p1.l by p2.l
         sta WRMPYA
@@ -148,7 +148,7 @@ COSINE_OFFS = 64
         nop
         nop
         nop
-        RW a16i16
+        RW a16
         lda RDMPYL
         xba
         and #$ff00
@@ -163,7 +163,7 @@ COSINE_OFFS = 64
 ; 
 ; x, and y are clobbered
 ; product is stored into a
-.macro mult_s0p8_s0p8_trig cand1, cand2, cos1, cos2
+.macro mult_s8p8_s8p8_trig cand1, cand2, cos1, cos2
           RW a8i8 ;thanks Not Kieran F
 
           ldx cand1
@@ -280,28 +280,7 @@ Main:
         ;Set color 0
         CGRAM_memcpy 0, m7pbpalette, sizeof_m7pbpalette
         WRAM_memset pseudobitmap, 16384, $00
-        
-trigunittest:
-        RW a8i8
-        lda #$81
-        pha
-        plb
-        
-        ldx #$10
-        stx z:ZPAD
-        
-        lda sinlut,x
-        sta z:ZPAD+1
-        lda sinluth,x
-        sta z:ZPAD+2
-        lda sinlut+COSINE_OFFS,x
-        sta z:ZPAD+3
-        lda sinluth+COSINE_OFFS,x
-        sta z:ZPAD+4
-        
-        sta $7feeee
-okaygo:
-        
+
         RW a8i16
         
         ldx #(60+(128*56))
@@ -386,266 +365,108 @@ okaygo:
         lda #INIT_SZ
         sta z:matrix_sz
         
+        lda #$81
+        pha
+        plb
+        
 polyrotation:
-        RW a16i16
-        ldy #0
-evenslowerpolyrotationloop:
-        lda a:cube_x,y ;cache the co-ordinates of the vertex
-        sta z:ZPAD
-        lda a:cube_y,y
-        sta z:ZPAD+2
-        lda a:cube_z,y
-        sta z:ZPAD+4
-        
-        phy ;keep the vertex number in the stack
-        
-        RW a8i8
-        ldx z:matrix_sx
-        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, z:ZPAD, 6, {sinluth+COSINE_OFFS,x}, z:ZPAD+1 ;x'  = x*cos(A)
-        sta z:ZPAD+12
-        
-        RW a8i8
-        mult_8p8_8p8 {sinlut,x}, z:ZPAD+2, 6, {sinluth,x}, z:ZPAD+3 ;+ y*sin(A)
-        sta z:ZPAD+14
-        
-        add z:ZPAD+12
-        sta z:ZPAD+16 ;x'
-        
-        RW a8i8
-        mult_8p8_8p8 {sinlut,x}, z:ZPAD, 6, {sinluth,x}, z:ZPAD+1 ;y'  = x*sin(A)
-        sta z:ZPAD+12
-        
-        RW a8i8
-        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, z:ZPAD+2, 6, {sinluth+COSINE_OFFS,x}, z:ZPAD+3 ;- y*cos(A)
-        sta z:ZPAD+14
-        
-        lda z:ZPAD+12
-        sub z:ZPAD+14
-        sta z:ZPAD+18 ;y'
-        
-        RW a8i8
-        ldx z:matrix_sy
-        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, z:ZPAD+16, 6, {sinluth+COSINE_OFFS,x}, z:ZPAD+17 ;x''  = x'*cos(B)
-        sta z:ZPAD+12
-        
-        RW a8i8
-        mult_8p8_8p8 {sinlut,x}, z:ZPAD+4, 6, {sinluth,x}, z:ZPAD+5 ;+ z*sin(B)
-        sta z:ZPAD+14
-        
-        add z:ZPAD+12
-        ;adc z:ZPAD
-        ply ;pull it out
-        sta matrix_pointx,y ;x''
-        phy ;push it again
-        
-        RW a8i8
-        mult_8p8_8p8 {sinlut,x}, z:ZPAD+16, 6, {sinluth,x}, z:ZPAD+17 ;z'  = x'*sin(B)
-        sta z:ZPAD+12
-        
-        RW a8i8
-        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, z:ZPAD+4, 6, {sinluth+COSINE_OFFS,x}, z:ZPAD+5 ;- z*cos(B)
-        sta z:ZPAD+14
-        
-        lda z:ZPAD+12
-        sub z:ZPAD+14
-        sta z:ZPAD+20 ;z'
-        
-        RW a8i8
-        ldx z:matrix_sz
-        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, z:ZPAD+18, 6, {sinluth+COSINE_OFFS,x}, z:ZPAD+19 ;y''  = y'*cos(C)
-        sta z:ZPAD+12
-        
-        RW a8i8
-        mult_8p8_8p8 {sinlut,x}, z:ZPAD+20, 6, {sinluth,x}, z:ZPAD+21 ;+ z'*sin(C)
-        sta z:ZPAD+14
-        
-        add z:ZPAD+12
-        ;adc z:ZPAD+2
-        ply ;pull it out
-        sta matrix_pointy,y ;y''
-        phy ;push it again
-        
-        RW a8i8
-        mult_8p8_8p8 {sinlut,x}, z:ZPAD+18, 6, {sinluth,x}, z:ZPAD+19 ;z''  = y'*sin(C)
-        sta z:ZPAD+12
-        
-        RW a8i8
-        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, z:ZPAD+20, 8, {sinluth+COSINE_OFFS,x}, z:ZPAD+21 ;- z'*cos(C)
-        sta z:ZPAD+14
-        
-        lda z:ZPAD+12
-        sub z:ZPAD+14
-        ;add z:ZPAD+4
-        ply ;pull it out
-        sta matrix_pointz,y ;z''
-        
-        jmp donepolyrotation
-
 polyrotationsetup:
+        RW i8
 ; x-
-        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sy, COSINE_OFFS, COSINE_OFFS ;xx = [cos(A)cos(B)]
+        ldx z:matrix_sx ;angle A
+        ldy z:matrix_sy ;angle B
+        
+        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, {sinlut+COSINE_OFFS,y}, 6, {sinluth+COSINE_OFFS,x}, {sinluth+COSINE_OFFS,y} ;xx = [cos(A)cos(B)]
         sta matrix_xx
-        bpl :+ ;gotta sign extend
-        lda #$ff
-        bra :++
-      : lda #0
-      : sta matrix_xx+1
       
-        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sy, 0, COSINE_OFFS ;xy = [sin(A)cos(B)]
+        mult_8p8_8p8 {sinlut,x}, {sinlut+COSINE_OFFS,y}, 6, {sinluth,x}, {sinluth+COSINE_OFFS,y} ;xy = [sin(A)cos(B)]
         sta matrix_xy
-        bpl :+ ;gotta sign extend
-        lda #$ff
-        bra :++
-      : lda #0
-      : sta matrix_xy+1
       
-        ldx z:matrix_sy      ;xz = [sin(B)]
-        lda sinlut,x
+        ;xz = [sin(B)]
+        RW a8
+        lda sinlut,y
         sta matrix_xz
-        bpl :+
-        lda #$ff
-        bra :++
-      : lda #0
-      : sta matrix_xz+1
+        lda sinluth,y
+        sta matrix_xz+1
         
 ; y-
-        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sz, 0, COSINE_OFFS     ;yx = [sin(A)cos(C)
+        ldy z:matrix_sz ;angle C
+        
+        mult_8p8_8p8 {sinlut,x}, {sinlut+COSINE_OFFS,y}, 6, {sinluth,x}, {sinluth+COSINE_OFFS,y} ;yx = [sin(A)cos(C)
         sta z:ZPAD
       
-        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sy, COSINE_OFFS, 0     ;+ cos(A)sin(B)sin(C)]
-        ldx z:matrix_sz
-        sta WRMPYA
-        ldy sinlut,x
-        sty WRMPYB
-        nop
-        nop
-        nop
-        lda RDMPYH
+        ldy z:matrix_sy
+        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, {sinlut,y}, 6, {sinluth+COSINE_OFFS,x}, {sinluth,y}     ;+ cos(A)sin(B)sin(C)]
+        sta z:ZPAD+2
+        
+        ldy z:matrix_sz
+        mult_8p8_8p8 z:ZPAD+2, {sinlut,y}, 6, z:ZPAD+3, {sinluth,y}
         add z:ZPAD
         sta matrix_yx
-        bpl :+ ;gotta sign extend
-        lda #$ff
-        bra :++
-      : lda #0
-      : sta matrix_yx+1
-      
-        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sz, COSINE_OFFS, COSINE_OFFS     ;yy = [-cos(A)cos(C)
+        
+        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, {sinlut+COSINE_OFFS,y}, 6, {sinluth+COSINE_OFFS,x}, {sinluth+COSINE_OFFS,y} ;yy = [-cos(A)cos(C)
         sta z:ZPAD
-      
-        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sy, 0, 0     ;+ sin(A)sin(B)sin(C)]
-        ldx z:matrix_sz
-        sta WRMPYA
-        ldy sinlut,x
-        sty WRMPYB
-        nop
-        nop
-        nop
-        lda RDMPYH
+        
+        ldy z:matrix_sy                                                                                  ;+ sin(A)sin(B)sin(C)]
+        mult_8p8_8p8 {sinlut,x}, {sinlut,y}, 6, {sinluth,x}, {sinluth,y} 
+        sta z:ZPAD+2
+        
+        ldy z:matrix_sz
+        mult_8p8_8p8 z:ZPAD+2, {sinlut,y}, 6, z:ZPAD+3, {sinluth,y}
         sub z:ZPAD
         sta matrix_yy
-        bpl :+ ;gotta sign extend
-        lda #$ff
-        bra :++
-      : lda #0
-      : sta matrix_yy+1
         
-        mult_s0p8_s0p8_trig z:matrix_sy, z:matrix_sz, COSINE_OFFS, 0     ;yz = [-cos(B)sin(C)]
+        ldx z:matrix_sy
+        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, {sinlut,y}, 6, {sinluth+COSINE_OFFS,x}, {sinluth,y}    ;yz = [-cos(B)sin(C)]
         neg
         sta matrix_yz
-        bpl :+ ;gotta sign extend
-        lda #$ff
-        bra :++
-      : lda #0
-      : sta matrix_yz+1
         
 ; z-
-
-        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sz, 0, 0     ;zx = [sin(A)sin(C)
+        ldx z:matrix_sx
+        mult_8p8_8p8 {sinlut,x}, {sinlut,y}, 6, {sinluth,x}, {sinluth,y} ;zx = [sin(A)sin(C)
         sta z:ZPAD
       
-        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sy, COSINE_OFFS, 0     ;- cos(A)sin(B)cos(C)]
-        ldx z:matrix_sz
-        sta WRMPYA
-        ldy sinlut+COSINE_OFFS,x
-        sty WRMPYB
-        nop
-        nop
-        nop
-        lda RDMPYH
+        ldy z:matrix_sy
+        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, {sinlut,y}, 6, {sinluth+COSINE_OFFS,x}, {sinluth,y}      ;- cos(A)sin(B)cos(C)]
+        sta z:ZPAD+2
+        
+        ldy z:matrix_sz
+        mult_8p8_8p8 z:ZPAD+2, {sinlut+COSINE_OFFS,y}, 6, z:ZPAD+3, {sinluth+COSINE_OFFS,y}
+        sta z:ZPAD+2
+        
+        lda z:ZPAD
+        sub z:ZPAD+2
+        sta matrix_zx
+      
+        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, {sinlut,y}, 6, {sinluth+COSINE_OFFS,x}, {sinluth,y}    ;zy = [-cos(A)sin(C)
+        neg
+        sta z:ZPAD
+      
+        ldy z:matrix_sy
+        mult_8p8_8p8 {sinlut,x}, {sinlut,y}, 6, {sinluth,x}, {sinluth,y}     ;- sin(A)sin(B)cos(C)]
+        sta z:ZPAD+2
+        
+        ldy z:matrix_sz
+        mult_8p8_8p8 z:ZPAD+2, {sinlut+COSINE_OFFS,y}, 6, z:ZPAD+3, {sinluth+COSINE_OFFS,y}
         neg
         add z:ZPAD
-        sta matrix_zx
-        bpl :+ ;gotta sign extend
-        lda #$ff
-        bra :++
-      : lda #0
-      : sta matrix_zx+1
-      
-        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sz, COSINE_OFFS, 0     ;zy = [-cos(A)sin(C)
-        sta z:ZPAD
-      
-        mult_s0p8_s0p8_trig z:matrix_sx, z:matrix_sy, 0, 0     ;- sin(A)sin(B)cos(C)]
-        ldx z:matrix_sz
-        sta WRMPYA
-        ldy sinlut+COSINE_OFFS,x
-        sty WRMPYB
-        nop
-        nop
-        nop
-        lda RDMPYH
-        neg
-        sub z:ZPAD
         sta matrix_zy
-        bpl :+ ;gotta sign extend
-        lda #$ff
-        bra :++
-      : lda #0
-      : sta matrix_zy+1
         
-        mult_s0p8_s0p8_trig z:matrix_sy, z:matrix_sz, COSINE_OFFS, COSINE_OFFS     ;zz = [cos(B)cos(C)]
+        ldx z:matrix_sy
+        mult_8p8_8p8 {sinlut+COSINE_OFFS,x}, {sinlut+COSINE_OFFS,y}, 6, {sinluth+COSINE_OFFS,x}, {sinluth+COSINE_OFFS,y}  ;zz = [cos(B)cos(C)]
         sta matrix_zz
-        bpl :+ ;gotta sign extend
-        lda #$ff
-        bra :++
-      : lda #0
-      : sta matrix_zz+1
 
 ; ?x*?y
-        RW a16i8
-        ldx matrix_xx ;xx_xy = xx*xy
-        stx WRMPYA
-        ldx matrix_xy
-        stx WRMPYB
-        nop
-        nop
-        nop
-        lda RDMPYH
-        and #$00ff
+        mult_8p8_8p8 matrix_xx, matrix_xy, 6, matrix_xx+1, matrix_xy+1
         sta matrix_xx_xy
         
-        ldx matrix_yx ;yx_yy = yx*yy
-        stx WRMPYA
-        ldx matrix_yy
-        stx WRMPYB
-        nop
-        nop
-        nop
-        lda RDMPYH
-        and #$00ff
+        mult_8p8_8p8 matrix_yx, matrix_yy, 6, matrix_yx+1, matrix_yy+1
         sta matrix_yx_yy
         
-        ldx matrix_zx ;zx_zy = zx*zy
-        stx WRMPYA
-        ldx matrix_zy
-        stx WRMPYB
-        nop
-        nop
-        nop
-        lda RDMPYH
-        and #$00ff
+        mult_8p8_8p8 matrix_zx, matrix_zy, 6, matrix_zx+1, matrix_zy+1
         sta matrix_zx_zy
         
-        RW a8i16
+        RW i16
         ldy #0
 slowpolyrotationloop:
 ;x''
@@ -657,7 +478,7 @@ slowpolyrotationloop:
         
         add z:ZPAD+2
         add z:ZPAD
-        add a:cube_x,y
+        ;add a:cube_x,y
         sta matrix_pointx,y
         
 ;y''
@@ -669,7 +490,7 @@ slowpolyrotationloop:
         
         add z:ZPAD+2
         add z:ZPAD
-        add a:cube_y,y
+        ;add a:cube_y,y
         sta matrix_pointy,y
 
 ;z''
@@ -681,7 +502,7 @@ slowpolyrotationloop:
         
         add z:ZPAD+2
         add z:ZPAD
-        add a:cube_z,y
+        ;add a:cube_z,y
         sta matrix_pointz,y
         
         jmp donepolyrotation
@@ -770,7 +591,7 @@ donepolyrotation:
         iny
         cpy #16
         beq polyprojection
-        jmp evenslowerpolyrotationloop
+        jmp slowpolyrotationloop
         
 polyprojection:
         RW a8i16
@@ -922,8 +743,8 @@ VBL:
         stz BG1VOFS
         sta BG1VOFS
         ;inc z:matrix_sx
-        ;inc z:matrix_sy
-        inc z:matrix_sz
+        inc z:matrix_sy
+        ;inc z:matrix_sz
         bra donevblankinit
   middlevblankinit:
         VRAM_memcpy y, (pseudobitmap), 3584, 0, 0, $18       ;Transfer middle third of map to even VRAM addresses
