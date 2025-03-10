@@ -774,7 +774,7 @@ edgeloop:
         and #$00ff
         asl
         tax
-        hamline z:ZPAD, z:ZPAD+2, {a:oldpointxword,x}, {a:oldpointyword,x}, #$00, 4
+        hamline z:ZPAD, z:ZPAD+2, {a:oldpointxword,x}, {a:oldpointyword,x}, #$40, 4
 
         RW_forced a16i16
         lda a:cube_edge1,y
@@ -794,7 +794,7 @@ edgeloop:
                 
 @nextloop:
         iny
-        cpy #12
+        cpy #1
         beq threeddone
         jmp edgeloop
 
@@ -842,8 +842,8 @@ VBL:
         stz BG1VOFS
         sta BG1VOFS
         ;inc z:matrix_sx
-        ;inc z:matrix_sy
-        inc z:matrix_sz
+        inc z:matrix_sy
+        ;inc z:matrix_sz
         bra donevblankinit
   middlevblankinit:
         VRAM_memcpy y, (pseudobitmap), 3584, 0, 0, $18       ;Transfer middle third of map to even VRAM addresses

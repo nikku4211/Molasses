@@ -33,4 +33,4 @@ After all that, just run `make` in the command line. If you see some alignment w
 ## Licence
 This code is under the Boost Software Licence 1.0, a permissive licence.
 
-Music is copyrighted by Nikku4211. Test image contains a photo of and taken by LGR.
+Music is copyrighted by Rivers Cuomo.
