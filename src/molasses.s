@@ -21,7 +21,7 @@ CAM_SPEED = 64
 ;initial cam position
 INIT_CAM_X = 0 ;((4)<<8)
 INIT_CAM_Y = 0 ;((4)<<8)
-INIT_CAM_Z = ((256 - 16)<<8)
+INIT_CAM_Z = ((256 - 48)<<8)
 
 ;rotation amount per axis
 INIT_SX = 0
@@ -245,94 +245,208 @@ COSINE_OFFS = 64
         adc z:ZPAD+freezpad
 .endmacro
 
-.macro hamline x0, y0, x1, y1, col, freezpad
+;bresenham line macro (low part)
+;x16 is clobbered
+;a8 and a16 are also used
+.macro hamline_low x0, y0, x1, y1, col, freezpad
 .scope
         RW_forced a8i16
         lda x0 ;x0
         sta z:ZPAD+freezpad
-        stz z:ZPAD+freezpad+1
         lda x1 ;x1
-        sta z:ZPAD+freezpad+2
-        stz z:ZPAD+freezpad+3
+        sta z:ZPAD+freezpad+1
         lda y0 ;y0
-        sta z:ZPAD+freezpad+4
+        sta z:ZPAD+freezpad+2
         lda y1 ;y1
-        sta Z:ZPAD+freezpad+5
+        sta z:ZPAD+freezpad+3
         
-        lda z:ZPAD+freezpad+2
+        lda z:ZPAD+freezpad+1
         sub z:ZPAD+freezpad
-        bpl :+
-        neg
-      : sta ham_dx ;dx = abs(x1 - x0)
+        sta ham_dx ;dx = x1 - x0
       
-        lda z:ZPAD+freezpad+5
-        sub z:ZPAD+freezpad+4
-        bpl :+
-        neg
-      : neg
-        sta ham_dy ;dy = -abs(y1 - y0)
-        
-        lda z:ZPAD+freezpad ; sx = x0 < x1 ? 1 : -1
-        cmp z:ZPAD+freezpad+2
-        bcs :+
-        lda #1
-        bra :++
-      : lda #$ff
-      : sta ham_sx
-      
-        lda z:ZPAD+freezpad+4 ; sy = y0 < y1 ? 1 : -1
-        cmp z:ZPAD+freezpad+5
-        bcs :+
-        lda #1
-        bra :++
-      : lda #$ff
-      : sta ham_sy
-      
-        lda ham_dx
-        add ham_dy
-        sta ham_lerror ; error = dx + dy
-whileloop:
-        RW a16i16
         lda z:ZPAD+freezpad+3
-        and #$ff00
+        sub z:ZPAD+freezpad+2
+        sta ham_dy ;dy = y1 - y0
+        
+        lda #1
+        sta ham_yi ;yi = 1
+        
+        lda ham_dy
+        bpl :+ ;if dy < 0
+        lda #$ff
+        sta ham_yi ;yi = -1
+        lda ham_dy 
+        neg ;dy = -dy
+      : sta ham_dy
+      
+        asl
+        sub ham_dx
+        sta ham_dee ;D = (2*dy) - dx
+      
+        lda z:ZPAD+freezpad+2
+        sta ham_y
+        lda z:ZPAD+freezpad
+        sta ham_x
+forloop:
+        RW a16i16
+        lda ham_y-1
+        and #$7f00
         lsr
-        ora z:ZPAD
+        ora ham_x
         tax
         RW a8
         lda col
         sta f:pseudobitmap,x ; plot(x0, y0)
         
-        lda ham_lerror
+        lda ham_dee ;if D > 0
+        bmi :+
+        lda ham_y
+        add ham_yi ; Y += yi
+        sta ham_y
+        lda ham_dy
+        sub ham_dx
         asl
-        sta ham_le2 ; e2 = error * 2
-        
-        cmp ham_dy ;if e2 >= dy
-        bcs :+
-        lda z:ZPAD+freezpad ;if x0 == x1 break
-        cmp z:ZPAD+freezpad+2
-        beq nomoreloop
-        lda ham_lerror
-        add ham_dy
-        sta ham_lerror ;error += dy
-        lda z:ZPAD+freezpad
-        add ham_sx
-        sta z:ZPAD+freezpad ;x0 += sx
-        lda ham_le2
-      : cmp ham_dx ;if e2 <= dx
-        beq :+
-        bcc :++
-      : lda z:ZPAD+freezpad+4 ;if y0 == y1 break
-        cmp z:ZPAD+freezpad+5
-        beq nomoreloop
-        lda ham_lerror
-        add ham_dx
-        sta ham_lerror ;error += dx
-        lda z:ZPAD+freezpad+4
-        add ham_sy
-        sta z:ZPAD+freezpad+4 ;y0 += sy
-:
-        bra whileloop
+        add ham_dee
+        sta ham_dee ; D += 2 * (dy - dx)
+        bra :++
+      : lda ham_dy ; else
+        asl
+        add ham_dee
+        sta ham_dee ; D += 2*dy
+      : lda ham_x
+        inc
+        sta ham_x
+        cmp z:ZPAD+freezpad+1
+        bne forloop
 nomoreloop:
+.endscope
+.endmacro
+
+;bresenham line macro (high part)
+;x16 is clobbered
+;a8 and a16 are also used
+.macro hamline_high x0, y0, x1, y1, col, freezpad
+.scope
+        RW_forced a8i16
+        lda x0 ;x0
+        sta z:ZPAD+freezpad
+        lda x1 ;x1
+        sta z:ZPAD+freezpad+1
+        lda y0 ;y0
+        sta z:ZPAD+freezpad+2
+        lda y1 ;y1
+        sta z:ZPAD+freezpad+3
+        
+        lda z:ZPAD+freezpad+1
+        sub z:ZPAD+freezpad
+        sta ham_dx ;dx = x1 - x0
+      
+        lda z:ZPAD+freezpad+3
+        sub z:ZPAD+freezpad+2
+        sta ham_dy ;dy = y1 - y0
+        
+        lda #1
+        sta ham_xi ;xi = 1
+        
+        lda ham_dx
+        bpl :+ ;if dx < 0
+        lda #$ff
+        sta ham_xi ;xi = -1
+        lda ham_dx 
+        neg ;xy = -dx
+      : sta ham_dx
+      
+        asl
+        sub ham_dy
+        sta ham_dee ;D = (2*dx) - dy
+      
+        lda z:ZPAD+freezpad+2
+        sta ham_y
+        lda z:ZPAD+freezpad
+        sta ham_x
+forloop:
+        RW a16i16
+        lda ham_y-1
+        and #$7f00
+        lsr
+        ora ham_x
+        tax
+        RW a8
+        lda col
+        sta f:pseudobitmap,x ; plot(x0, y0)
+        
+        lda ham_dee ;if D > 0
+        bmi :+
+        lda ham_x
+        add ham_xi ; x += xi
+        sta ham_x
+        lda ham_dx
+        sub ham_dy
+        asl
+        add ham_dee
+        sta ham_dee ; D += 2 * (dx - dy)
+        bra :++
+      : lda ham_dx ; else
+        asl
+        add ham_dee
+        sta ham_dee ; D += 2*dx
+      : lda ham_y
+        inc
+        sta ham_y
+        cmp z:ZPAD+freezpad+3
+        bne forloop
+nomoreloop:
+.endscope
+.endmacro
+
+;bresenham line macro (general)
+;x16 is clobbered
+;a8 and a16 are also used
+;x0, x1, y0, and y1 must be 8bit and leave the sign bit unused
+.macro hamline x0, y0, x1, y1, col, freezpad
+.scope
+        RW_forced a8i16
+        
+        lda x1
+        sub x0
+        bpl :+
+        neg
+      : sta z:ZPAD+freezpad+1 ;abs(x1 - x0)
+        
+        lda y1
+        sub y0
+        bpl :+
+        neg
+      : sta z:ZPAD+freezpad ;abs(y1 - y0)
+      
+        cmp z:ZPAD+freezpad+1
+        bcc :+ ;if abs(y1 - y0) < abs(x1 - x0)
+        jmp if_abs_greater
+       :
+        
+        lda x0
+        cmp x1
+        beq :+
+        bcs if_x0_greater
+      : jmp if_x0_lesser ;if x0 > x1
+    if_x0_greater:
+        hamline_low {x1}, {y1}, {x0}, {y0}, col, freezpad+2
+        jmp end_if_abs
+    if_x0_lesser:
+        hamline_low {x0}, {y0}, {x1}, {y1}, col, freezpad+2
+        jmp end_if_abs
+if_abs_greater: ;else
+        lda y0
+        cmp y1
+        beq :+
+        bcs if_y0_greater
+      : jmp if_y0_lesser ;if y0 > y1
+    if_y0_greater:
+        hamline_high {x1}, {y1}, {x0}, {y0}, col, freezpad+2
+        jmp end_if_abs
+    if_y0_lesser:
+        hamline_high {x0}, {y0}, {x1}, {y1}, col, freezpad+2
+end_if_abs: ;end if
 .endscope
 .endmacro
 
@@ -652,6 +766,7 @@ polyprojection:
 projectionloop:
 @xpointpro:
         RW a16i16
+        stz z:nopoint
         stz z:invertpointx
         ; get cube x points and divide by z
         lda a:matrix_pointx,y
@@ -718,11 +833,14 @@ projectionloop:
 @pointoffscreen:
         lda #$003f
         sta a:pointyword,y
+        lda #1
+        sta z:nopoint
 @donepointpro:
         stz z:invertpointx
         stz z:invertpointy
         
         lda a:oldpointyword,y
+        and #$007f
         xba
         lsr
         ora a:oldpointxword,y
@@ -733,12 +851,13 @@ projectionloop:
         sta f:pseudobitmap,x
         
         RW a16i16
+        lda z:nopoint
+        bne @nextloop
         
         lda a:pointxword,y
-        sta a:oldpointxword,y
         
         lda a:pointyword,y
-        sta a:oldpointyword,y
+        and #$007f
         xba
         lsr
         ora a:pointxword,y
@@ -774,7 +893,7 @@ edgeloop:
         and #$00ff
         asl
         tax
-        hamline z:ZPAD, z:ZPAD+2, {a:oldpointxword,x}, {a:oldpointyword,x}, #$40, 4
+        hamline z:ZPAD, z:ZPAD+2, {a:oldpointxword,x}, {a:oldpointyword,x}, #$00, 4
 
         RW_forced a16i16
         lda a:cube_edge1,y
@@ -794,10 +913,24 @@ edgeloop:
                 
 @nextloop:
         iny
-        cpy #1
-        beq threeddone
+        cpy #12
+        beq :+
         jmp edgeloop
+        
+      : ldy #0
+updatepoints:
+        RW a16i16
+        lda a:pointxword,y
+        sta a:oldpointxword,y
+        lda a:pointyword,y
+        sta a:oldpointyword,y
+@nextloop2:
+        iny
+        iny
+        cpy #16
+        bne updatepoints
 
+        RW a8i16
 threeddone:
         lda #1
         sta z:threeddoneflag
@@ -826,13 +959,13 @@ VBL:
         beq lastvblankinit
         cmp #1
         beq middlevblankinit
-        VRAM_memcpy VRAM_MODE7_LOC, pseudobitmap, 3584, 0, 0, $18       ;Transfer first third of map to even VRAM addresses
+        VRAM_memcpy VRAM_MODE7_LOC, pseudobitmap, 4096, 0, 0, $18       ;Transfer first third of map to even VRAM addresses
         lda z:vramsplit
         dec
         sta z:vramsplit
         bra donevblankinit
   lastvblankinit:
-        VRAM_memcpy y, (pseudobitmap+3584), 3584, 0, 0, $18       ;Transfer last third of map to even VRAM addresses
+        VRAM_memcpy y, (pseudobitmap+4096), 3072, 0, 0, $18       ;Transfer last third of map to even VRAM addresses
         lda #1  ;setup vramsplit for the next trio of frames
         sta z:vramsplit
         stz z:threeddoneflag
@@ -846,7 +979,7 @@ VBL:
         ;inc z:matrix_sz
         bra donevblankinit
   middlevblankinit:
-        VRAM_memcpy y, (pseudobitmap), 3584, 0, 0, $18       ;Transfer middle third of map to even VRAM addresses
+        VRAM_memcpy y, (pseudobitmap), 4096, 0, 0, $18       ;Transfer middle third of map to even VRAM addresses
         lda z:vramsplit
         dec
         sta z:vramsplit
@@ -942,6 +1075,7 @@ camz: .res 2
 invertpointx: .res 2
 invertpointy: .res 2
 invertpointz: .res 2
+nopoint: .res 2
 matrix_sx: .res 1
 matrix_sy: .res 1
 matrix_sz: .res 1
@@ -982,9 +1116,7 @@ ham_dx: .res 1
 ham_dy: .res 1
 ham_y: .res 2
 ham_x: .res 2
-ham_sx: .res 1
-ham_sy: .res 1
-ham_lerror: .res 1
-ham_le2: .res 1
+ham_yi: .res 1
+ham_xi: .res 1
 
 matrix_edge: .res 12
