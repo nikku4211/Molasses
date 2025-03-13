@@ -30,6 +30,9 @@ This project uses it.
 
 After all that, just run `make` in the command line. If you see some alignment warnings, that's normal, and the game will still build.
 
+If you want to replace the model used in the demo, just put your model's `.obj` file (and `.mtl` file) in the `obj` subdirectory and replace the `.obj` file in the `makefile` with your own model's `.obj` file.
+Also feel free to change the scale number at the end if the model vertex scaling isn't to your liking.
+
 ## Licence
 This code is under the Boost Software Licence 1.0, a permissive licence.
 
