@@ -4,12 +4,12 @@
 ## Dependencies
 - [LibSFX](https://github.com/Optiroc/libSFX)
 - [Python](https://www.python.org/)
- - [Pillow](https://pypi.org/project/pillow/) is a requirement for `romusage.py`
-  - If you're on MSYS2, install `mingw-w64-python-pillow` and run the MinGW-W64 MSYS2 console.
+    - [Pillow](https://pypi.org/project/pillow/) is a requirement for `romusage.py` and `wavefront2mol.py`
+        - If you're on MSYS2, install `mingw-w64-python-pillow` and run the MinGW-W64 MSYS2 console.
 - [GCC](https://gcc.gnu.org/)
- - Binary builds for Windows x64 are provided, but if you use Linux and you don't feel like compiling the C code of the LUT generators, [Wine](https://www.winehq.org/) is recommended.
+    - Binary builds for Windows x64 are provided, but if you use Linux and you don't feel like compiling the C code of the LUT generators, [Wine](https://www.winehq.org/) is recommended.
 - [SNESMOD](https://github.com/mukunda-/snesmod/tree/main/smconv)
- - Again, a binary build for SMConv for Windows x64 is provided, but if you are on Linux and don't want to compile Go code, use Wine to run the provided .exe.
+    - Again, a binary build for SMConv for Windows x64 is provided, but if you are on Linux and don't want to compile Go code, use Wine to run the provided .exe.
 
 ## Building
 For Windows users, [MSYS2](https://www.msys2.org/) is recommended to build the game.

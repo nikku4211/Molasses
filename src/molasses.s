@@ -29,8 +29,8 @@ INIT_SY = 0
 INIT_SZ = 0
 
 ;hardcoded model properties
-VERTEX_COUNT = 52
-EDGE_COUNT = 144
+VERTEX_COUNT = 8
+EDGE_COUNT = 24
 
 ;toggle music
 USE_AUDIO = 1
@@ -982,7 +982,7 @@ VBL:
         stz BG1VOFS
         sta BG1VOFS
         ;inc z:matrix_sx
-        ;inc z:matrix_sy
+        inc z:matrix_sy
         ;inc z:matrix_sz
         bra donevblankinit
   middlevblankinit:

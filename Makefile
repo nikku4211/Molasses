@@ -60,7 +60,7 @@ $(sourcedir)/idlut.i: $(tools)/idlutgen.exe
 $(tools)/idlutgen.exe: $(tools)/idlutgen.c
 	$(CC) -o $@ $<
 	
-$(sourcedir)/models.i: $(objs)/CubeGuy.obj
+$(sourcedir)/models.i: $(objs)/cubey.obj
 	$(PY) $(tools)/wavefront2mol.py $< $@ cube 2
 	
 .PHONY: romused
