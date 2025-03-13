@@ -9,6 +9,7 @@ sourcedir := src
 resdir := data
 src := $(wildcard $(sourcedir)/%.s)
 tools := tools
+objs := obj
 
 PY := python
 
@@ -17,7 +18,7 @@ SNESMOD := $(tools)/smconv.exe
 
 derived_files := $(sourcedir)/sinlut.i $(sourcedir)/idlut.i \
 	$(resdir)/chunktestpalette.png.tiles $(resdir)/chunktestpalette.png.palette \
-	$(resdir)/game_music
+	$(resdir)/game_music $(sourcedir)/models.i
 
 $(resdir)/chunktestpalette.png.palette: palette_flags = -v --colors 256 -R
 $(resdir)/chunktestpalette.png.tiles: tiles_flags = -v -B 8 -M snes_mode7 -D -F -R -p $(resdir)/chunktestpalette.png.palette
@@ -58,6 +59,9 @@ $(sourcedir)/idlut.i: $(tools)/idlutgen.exe
 	
 $(tools)/idlutgen.exe: $(tools)/idlutgen.c
 	$(CC) -o $@ $<
+	
+$(sourcedir)/models.i: $(objs)/CubeGuy.obj
+	$(PY) $(tools)/wavefront2mol.py $< $@ cube 2
 	
 .PHONY: romused
 

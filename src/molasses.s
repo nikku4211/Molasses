@@ -1,7 +1,7 @@
 .include "libSFX.i"
 .include "sinlut.i"
 .include "idlut.i"
-.include "cubey.i"
+.include "models.i"
 
 HIROM = 1
 
@@ -24,13 +24,13 @@ INIT_CAM_Y = 0 ;((4)<<8)
 INIT_CAM_Z = ((256 - 48)<<8)
 
 ;rotation amount per axis
-INIT_SX = 32
+INIT_SX = 0
 INIT_SY = 0
 INIT_SZ = 0
 
 ;hardcoded model properties
-VERTEX_COUNT = 8
-EDGE_COUNT = 24
+VERTEX_COUNT = 52
+EDGE_COUNT = 144
 
 ;toggle music
 USE_AUDIO = 1
@@ -800,6 +800,7 @@ projectionloop:
         add #$0040    ;centre the point
         and #$7fff
         cmp #$0080  
+        and #$007f
         sta a:pointxword,y
         bcs @pointoffscreen ;if point offscreen, don't draw
 @ypointpro:
@@ -844,10 +845,11 @@ projectionloop:
         stz z:invertpointy
         
         lda a:oldpointyword,y
-        and #$007f
+        and #$003f
         xba
         lsr
         ora a:oldpointxword,y
+        and #$1fff
         tax
         
         RW a8i16
@@ -861,10 +863,11 @@ projectionloop:
         lda a:pointxword,y
         
         lda a:pointyword,y
-        and #$007f
+        and #$003f
         xba
         lsr
         ora a:pointxword,y
+        and #$1fff
         tax
         
         RW a8i16
@@ -873,10 +876,10 @@ projectionloop:
 @nextloop:      
         iny
         iny
-        cpy #16
+        cpy #(VERTEX_COUNT*2)
         beq drawedge
         jmp projectionloop
-
+      : jmp updatepointsstart
         
 drawedge:
         RW i16
@@ -918,10 +921,10 @@ edgeloop:
 @nextloop:
         iny
         cpy #EDGE_COUNT
-        beq :+
+        beq updatepointsstart
         jmp edgeloop
         
-      : ldy #0
+updatepointsstart: ldy #0
 updatepoints:
         RW a16i16
         lda a:pointxword,y
@@ -931,7 +934,7 @@ updatepoints:
 @nextloop2:
         iny
         iny
-        cpy #16
+        cpy #(VERTEX_COUNT*2)
         bne updatepoints
 
         RW a8i16
@@ -979,7 +982,7 @@ VBL:
         stz BG1VOFS
         sta BG1VOFS
         ;inc z:matrix_sx
-        inc z:matrix_sy
+        ;inc z:matrix_sy
         ;inc z:matrix_sz
         bra donevblankinit
   middlevblankinit:
@@ -1085,10 +1088,10 @@ matrix_sy: .res 1
 matrix_sz: .res 1
 
 .segment "LORAM"
-pointxword: .res 16
-pointyword: .res 16
-oldpointxword: .res 16
-oldpointyword: .res 16
+pointxword: .res (VERTEX_COUNT * 2)
+pointyword: .res (VERTEX_COUNT * 2)
+oldpointxword: .res (VERTEX_COUNT * 2)
+oldpointyword: .res (VERTEX_COUNT * 2)
 
 matrix_xx: .res 2
 matrix_xy: .res 2
@@ -1111,9 +1114,9 @@ matrix_z_xz: .res 2
 matrix_z_yz: .res 2
 matrix_z_zz: .res 2
 
-matrix_pointx: .res 16
-matrix_pointy: .res 16
-matrix_pointz: .res 16
+matrix_pointx: .res (VERTEX_COUNT * 2)
+matrix_pointy: .res (VERTEX_COUNT * 2)
+matrix_pointz: .res (VERTEX_COUNT * 2)
 
 ham_dee: .res 1
 ham_dx: .res 1
@@ -1123,4 +1126,4 @@ ham_x: .res 2
 ham_yi: .res 1
 ham_xi: .res 1
 
-matrix_edge: .res 12
+matrix_edge: .res EDGE_COUNT
