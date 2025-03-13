@@ -1,7 +1,7 @@
 .include "libSFX.i"
 .include "sinlut.i"
 .include "idlut.i"
-.include "models.i"
+.include "cubey.i"
 
 HIROM = 1
 
@@ -24,9 +24,13 @@ INIT_CAM_Y = 0 ;((4)<<8)
 INIT_CAM_Z = ((256 - 48)<<8)
 
 ;rotation amount per axis
-INIT_SX = 0
+INIT_SX = 32
 INIT_SY = 0
 INIT_SZ = 0
+
+;hardcoded model properties
+VERTEX_COUNT = 8
+EDGE_COUNT = 24
 
 ;toggle music
 USE_AUDIO = 1
@@ -756,7 +760,7 @@ uopolyrotationloop:
 donepolyrotation:
         iny
         iny
-        cpy #16
+        cpy #(VERTEX_COUNT * 2)
         beq polyprojection
         jmp uopolyrotationloop
         
@@ -913,7 +917,7 @@ edgeloop:
                 
 @nextloop:
         iny
-        cpy #12
+        cpy #EDGE_COUNT
         beq :+
         jmp edgeloop
         
